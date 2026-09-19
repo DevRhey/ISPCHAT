@@ -1,10 +1,8 @@
 ﻿# Cloudflare Quick Tunnel - sessao atual
 
-**App (front):** https://crimes-placement-assured-paradise.trycloudflare.com
-**API:** https://randy-blacks-addition-poster.trycloudflare.com
+**App (front):** https://licence-jewelry-ladies-stack.trycloudflare.com
+**API:** https://brian-vary-induced-farmer.trycloudflare.com
 
-Atualizado: 2026-09-19T18:17:51
+Atualizado: 2026-09-19T18:19:27
 
-Quick tunnels sao efemeros. Abrir sempre o link em `scripts/ISPCHAT_PUBLIC.txt`.
-
-Login local admin: `admin@admin.com` / `123456` (somente homologacao).
+Quick tunnels sao efemeros. Fonte viva: `scripts/ISPCHAT_PUBLIC.txt`.
