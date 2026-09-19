@@ -168,3 +168,22 @@ Scripts no remote: backend `test` (jest + migrate), `build` (`tsc`); frontend `b
 ---
 
 *Testes Windows ao vivo: não executados. Veredito GO CONDICIONAL.*
+
+---
+
+## 6. Atualização — testes ao vivo no Desktop Rhey (2026-09-19 ~15:40 BRT)
+
+Executado em `C:\Users\reyca\Desktop\whaticket-saas-main` (machine Rhey), após `git pull` → HEAD alinhado a `origin/master` (inclui este relatório).
+
+| Checagem | Resultado |
+|----------|-----------|
+| `git pull --ff-only` | OK — fast-forward para incluir `docs/COMMERCIAL_READINESS.md` |
+| Backend `npx tsc --noEmit` | **PASS** (exit 0) |
+| Backend `npm test` | **FAIL no pretest** — scripts usam `NODE_ENV=test` estilo Unix; no PowerShell Windows não funciona. Não há `src/**/*.spec.ts` do projeto (só deps). |
+| Frontend `npx react-scripts build` (env Windows) | **PASS** (Compiled successfully). Bundle main ~978 kB gzip — grande, mas build limpo. |
+| `npm run build` via script package.json | **FAIL** no Windows pelo mesmo motivo (`GENERATE_SOURCEMAP=false` inline Unix). Use env vars PowerShell + `npx react-scripts build`. |
+| `docker compose -f docker/docker-compose-dev.yml config` | **PASS** (exit 0) |
+| `node_modules` backend/frontend | Presentes |
+
+**Impacto no veredito:** permanece **GO CONDICIONAL**. Builds TypeScript + frontend OK no Desktop. Falta: smoke WhatsApp+ERP real, adaptar scripts npm para Windows (`cross-env`), e não vender Cloud API como pronta.
+
