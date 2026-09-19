@@ -76,8 +76,12 @@ app.use(
   cors({
     credentials: true,
     origin: (origin, callback) => {
-      // Permite requests sem Origin (curl/health) e origens locais comuns
-      if (!origin || allowedOrigins.includes(origin)) {
+      // Permite requests sem Origin (curl/health), locais e Cloudflare quick tunnels
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        /\.trycloudflare\.com$/i.test(origin)
+      ) {
         return callback(null, true);
       }
       return callback(new Error(`CORS blocked for origin: ${origin}`));
