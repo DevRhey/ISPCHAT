@@ -9,6 +9,27 @@ import { TransferTicketQueue } from "./wbotTransferTicketQueue";
 import cron from "node-cron";
 
 
+const assertProductionSecrets = () => {
+  if (process.env.NODE_ENV !== "production") return;
+  const weak = (v?: string) =>
+    !v ||
+    v.length < 32 ||
+    /change.?me|secret|123456|password/i.test(v);
+  if (weak(process.env.JWT_SECRET) || weak(process.env.JWT_REFRESH_SECRET)) {
+    logger.error(
+      "JWT_SECRET/JWT_REFRESH_SECRET fracos ou ausentes em produção. Defina secrets aleatórios (>=32 chars) e reinicie."
+    );
+    process.exit(1);
+  }
+  if (process.env.ALLOW_ISP_DEMO === "true") {
+    logger.warn(
+      "ALLOW_ISP_DEMO=true em NODE_ENV=production — dados fictícios de ERP podem vazar para clientes."
+    );
+  }
+};
+
+assertProductionSecrets();
+
 const server = app.listen(process.env.PORT, async () => {
   try {
     const companies = await Company.findAll();

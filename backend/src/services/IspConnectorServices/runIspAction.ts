@@ -142,6 +142,19 @@ const formatErpMessage = (
  * Executa ação no ERP do provedor.
  * Sem credenciais reais, retorna dados mock para testes de fluxo.
  */
+const isIspDemoAllowed = (): boolean => {
+  if (process.env.ALLOW_ISP_DEMO === "true") return true;
+  if (process.env.ALLOW_ISP_DEMO === "false") return false;
+  return process.env.NODE_ENV !== "production";
+};
+
+const demoBlockedResponse = (): { ok: boolean; data: Record<string, any>; message: string } => ({
+  ok: false,
+  data: {},
+  message:
+    "Conector ISP não configurado. Em produção o modo demo está bloqueado. Cadastre IXC/SGP/HubSoft em Conectores ISP ou defina ALLOW_ISP_DEMO=true apenas em homologação."
+});
+
 const runIspAction = async (
   params: ActionParams
 ): Promise<{ ok: boolean; data: Record<string, any>; message: string }> => {
@@ -161,7 +174,10 @@ const runIspAction = async (
   }
 
   if (!connector || !connector.baseUrl) {
-    // Mock útil para validar fluxos sem ERP
+    if (!isIspDemoAllowed()) {
+      return demoBlockedResponse();
+    }
+    // Mock útil para validar fluxos sem ERP (somente com ALLOW_ISP_DEMO / non-production)
     const cpf = String(variables.cpf || variables.document || "").replace(/\D/g, "");
     if (action === "lookupClient") {
       return {
