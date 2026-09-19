@@ -222,6 +222,43 @@ const runIspAction = async (
         message: `OS aberta *(demo)*: OS-${Date.now()}`
       };
     }
+    if (action === "unlockService" || action === "unblock") {
+      return {
+        ok: true,
+        data: { unlocked: true, cpf },
+        message: cpf
+          ? `Serviço desbloqueado *(demo)* para CPF ${cpf}.`
+          : "Informe o CPF para desbloquear *(demo)*."
+      };
+    }
+    if (action === "scheduleVisit") {
+      return {
+        ok: true,
+        data: { visitId: `VIS-${Date.now()}`, window: "próximo dia útil 08h-12h" },
+        message: `Visita agendada *(demo)*: VIS-${Date.now()} (próximo dia útil 08h-12h).`
+      };
+    }
+    if (action === "getContract") {
+      return {
+        ok: true,
+        data: {
+          plan: "Fibra 500 Mega",
+          address: "Rua Demonstração, 100",
+          status: "ativo",
+          contract: cpf ? `CTR-${cpf.slice(-4)}` : "CTR-DEMO"
+        },
+        message: cpf
+          ? `Contrato *(demo)* CTR-${cpf.slice(-4)}: Fibra 500 Mega — ativo.`
+          : "Informe o CPF para consultar o contrato *(demo)*."
+      };
+    }
+    if (action === "checkSignal") {
+      return {
+        ok: true,
+        data: { signal: -18, unit: "dBm", status: "ok" },
+        message: "Sinal ONU *(demo)*: -18 dBm (ok)."
+      };
+    }
     return {
       ok: false,
       data: {},

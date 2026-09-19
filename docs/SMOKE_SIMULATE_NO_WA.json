@@ -1,0 +1,186 @@
+﻿{
+    "at":  "2026-09-19T18:11:04",
+    "mode":  "simulate_sem_whatsapp",
+    "allowIspDemo":  true,
+    "builtin":  {
+                    "ok":  17,
+                    "fail":  0,
+                    "total":  17,
+                    "scenarios":  [
+                                      {
+                                          "scenario":  "fin_boleto",
+                                          "ok":  true,
+                                          "error":  null,
+                                          "notes":  "Master flow atualizado/já existia"
+                                      },
+                                      {
+                                          "scenario":  "fin_desbloqueio",
+                                          "ok":  true,
+                                          "error":  null,
+                                          "notes":  "Master flow atualizado/já existia"
+                                      },
+                                      {
+                                          "scenario":  "fin_ja_paguei",
+                                          "ok":  true,
+                                          "error":  null,
+                                          "notes":  "Master flow atualizado/já existia"
+                                      },
+                                      {
+                                          "scenario":  "fin_negociar",
+                                          "ok":  true,
+                                          "error":  null,
+                                          "notes":  "Master flow atualizado/já existia"
+                                      },
+                                      {
+                                          "scenario":  "tec_sem_internet",
+                                          "ok":  true,
+                                          "error":  null,
+                                          "notes":  "Master flow atualizado/já existia"
+                                      },
+                                      {
+                                          "scenario":  "tec_lenta",
+                                          "ok":  true,
+                                          "error":  null,
+                                          "notes":  "Master flow atualizado/já existia"
+                                      },
+                                      {
+                                          "scenario":  "tec_wifi",
+                                          "ok":  true,
+                                          "error":  null,
+                                          "notes":  "Master flow atualizado/já existia"
+                                      },
+                                      {
+                                          "scenario":  "tec_visita",
+                                          "ok":  true,
+                                          "error":  null,
+                                          "notes":  "Master flow atualizado/já existia"
+                                      },
+                                      {
+                                          "scenario":  "com_viabilidade",
+                                          "ok":  true,
+                                          "error":  null,
+                                          "notes":  "Master flow atualizado/já existia"
+                                      },
+                                      {
+                                          "scenario":  "com_planos",
+                                          "ok":  true,
+                                          "error":  null,
+                                          "notes":  "Master flow atualizado/já existia"
+                                      },
+                                      {
+                                          "scenario":  "com_instalacao",
+                                          "ok":  true,
+                                          "error":  null,
+                                          "notes":  "Master flow atualizado/já existia"
+                                      },
+                                      {
+                                          "scenario":  "svc_contrato",
+                                          "ok":  true,
+                                          "error":  null,
+                                          "notes":  "Master flow atualizado/já existia"
+                                      },
+                                      {
+                                          "scenario":  "svc_mudanca",
+                                          "ok":  true,
+                                          "error":  null,
+                                          "notes":  "Master flow atualizado/já existia"
+                                      },
+                                      {
+                                          "scenario":  "svc_retencao",
+                                          "ok":  true,
+                                          "error":  null,
+                                          "notes":  "Master flow atualizado/já existia"
+                                      },
+                                      {
+                                          "scenario":  "svc_anatel",
+                                          "ok":  true,
+                                          "error":  null,
+                                          "notes":  "Master flow atualizado/já existia"
+                                      },
+                                      {
+                                          "scenario":  "kw_boleto",
+                                          "ok":  true,
+                                          "error":  null,
+                                          "notes":  "Master flow atualizado/já existia"
+                                      },
+                                      {
+                                          "scenario":  "humano",
+                                          "ok":  true,
+                                          "error":  null,
+                                          "notes":  "Master flow atualizado/já existia"
+                                      }
+                                  ]
+                },
+    "manual":  [
+                   {
+                       "name":  "fin_boleto",
+                       "ok":  true,
+                       "turns":  11,
+                       "final":  "fin_done",
+                       "lastBot":  "✅ Pronto! Digite *menu* para outras opções ou *#sair* para encerrar."
+                   },
+                   {
+                       "name":  "fin_desbloqueio",
+                       "ok":  true,
+                       "turns":  11,
+                       "final":  "fin_done",
+                       "lastBot":  "✅ Pronto! Digite *menu* para outras opções ou *#sair* para encerrar."
+                   },
+                   {
+                       "name":  "fin_negociar",
+                       "ok":  true,
+                       "turns":  9,
+                       "final":  null,
+                       "lastBot":  "Transferindo para o *financeiro*…"
+                   },
+                   {
+                       "name":  "tec_os",
+                       "ok":  true,
+                       "turns":  9,
+                       "final":  "tec_onu",
+                       "lastBot":  "Opção inválida. Digite o *número*, uma palavra-chave (ex.: boleto, internet, plano) ou *#sair*."
+                   },
+                   {
+                       "name":  "tec_visita",
+                       "ok":  true,
+                       "turns":  11,
+                       "final":  null,
+                       "lastBot":  "Transferindo para o *suporte técnico*…"
+                   },
+                   {
+                       "name":  "com_cep",
+                       "ok":  true,
+                       "turns":  10,
+                       "final":  null,
+                       "lastBot":  "Transferindo para o *comercial*…"
+                   },
+                   {
+                       "name":  "svc_contrato",
+                       "ok":  true,
+                       "turns":  11,
+                       "final":  "svc_done",
+                       "lastBot":  "✅ Dados exibidos. Digite *menu* para continuar."
+                   },
+                   {
+                       "name":  "humano",
+                       "ok":  true,
+                       "turns":  5,
+                       "final":  null,
+                       "lastBot":  "Ok! Transferindo para um *atendente humano*…"
+                   },
+                   {
+                       "name":  "kw_boleto",
+                       "ok":  true,
+                       "turns":  5,
+                       "final":  "fin_menu",
+                       "lastBot":  "Opção inválida. Digite o *número*, uma palavra-chave (ex.: boleto, internet, plano) ou *#sair*."
+                   },
+                   {
+                       "name":  "kw_internet",
+                       "ok":  true,
+                       "turns":  5,
+                       "final":  "tec_menu",
+                       "lastBot":  "Opção inválida. Digite o *número*, uma palavra-chave (ex.: boleto, internet, plano) ou *#sair*."
+                   }
+               ]
+}
