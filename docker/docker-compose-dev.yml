@@ -17,24 +17,24 @@ services:
       - PROXY_PORT=8080
       - PORT=8080
       - DB_DIALECT=postgres
-      - DB_HOST=postgres
+      - DB_HOST=whaticket-postgres
       - DB_PORT=5432
       - DB_USER=whaticket
       - DB_PASS=whaticket
       - DB_NAME=whaticket
       - JWT_SECRET=kZaOTd+YZpjRUyyuQUpigJaEMk4vcW4YOymKPZX0Ts8=
       - JWT_REFRESH_SECRET=dBSXqFg9TaNUEDXVp6fhMTRLBysP+j2DSqf7+raxD3A=
-      - REDIS_URI=redis://:whaticket@redis:6379
+      - REDIS_URI=redis://:whaticket@whaticket-redis:6379
       - REDIS_OPT_LIMITER_MAX=1
       - REDIS_OPT_LIMITER_DURATION=3000
       - USER_LIMIT=10000
       - CONNECTIONS_LIMIT=100000
       - CLOSED_SEND_BY_ME=true
-    command: >
-      bash -c "apt-get update -qq && apt-get install -y -qq git python3 make g++ ffmpeg > /dev/null
-      && npm install --no-audit --no-fund
-      && npm run build
-      && node --max-old-space-size=4096 dist/server.js"
+    command:
+      - node
+      - --max-old-space-size=4096
+      - dist/server.js
+    # Para rebuild completo (npm/apt), use: docker compose run --rm backend bash -lc "apt-get update && apt-get install -y git python3 make g++ ffmpeg && npm install && npm run build"
     depends_on:
       - postgres
       - redis
@@ -61,7 +61,7 @@ services:
     container_name: whaticket-redis
     restart: always
     ports:
-      - "6379:6379"
+      - "6389:6379"
     command: redis-server --requirepass whaticket
     volumes:
       - redis_data:/data

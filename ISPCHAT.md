@@ -1,29 +1,56 @@
 # ISPCHAT
 
-Assistente conversacional completo para **provedores de internet (ISP)**, baseado em **LangGraph** + Whaticket SaaS (WhatsApp).
+Assistente conversacional completo para **provedores de internet (ISP)**, baseado em **LangGraph** (runtime embutido) + Whaticket SaaS (WhatsApp / Baileys).
+
+**Repositório:** https://github.com/DevRhey/ISPCHAT
 
 ## O que inclui
 
-- Motor **LangGraph** com roteamento por intenção (25+ casos de uso)
-- Fluxos prontos: 2ª via, PIX, negociação, sem internet, OS, viabilidade CEP, upgrade, cancelamento/retenção, reclamação, transferência humana, etc.
-- Conectores ERP (IXC / SGP / HubSoft) com modo demo
-- FlowEngine nativo + templates importáveis
-- Integração Typebot / n8n
+- Motor **LangGraph-compatible** com roteamento por intenção (**25+** casos de uso ISP)
+- **17 templates** de fluxo FlowEngine importáveis
+- Conectores ERP (IXC / SGP / HubSoft) com modo **demo**
+- Integrações Typebot / n8n / webhook
+- CORS para Cloudflare Quick Tunnel (`*.trycloudflare.com`)
+- Auth do frontend com timeout (evita tela de login infinita)
+
+## Documentação
+
+| Doc | Conteúdo |
+|-----|----------|
+| [docs/LANGGRAPH_ISPCHAT.md](docs/LANGGRAPH_ISPCHAT.md) | Arquitetura LangGraph, intenções, ativação |
+| [docs/ISP_AUTOMATION.md](docs/ISP_AUTOMATION.md) | Fases 1–3: Typebot, n8n, FlowEngine, conectores |
+| [docs/DEV_SETUP.md](docs/DEV_SETUP.md) | Subir stack local (Docker + CRA) |
+| [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Login infinito, Docker, portas Redis |
+| [README.md](README.md) | Whaticket SaaS base (monorepo) |
 
 ## Como ativar o LangGraph na fila
 
 1. **Integrações** → criar tipo **ISPCHAT LangGraph**
-2. **Filas** → vincular essa integração
-3. Cliente no WhatsApp recebe o menu ISPCHAT automático
+2. **Filas** → vincular essa integração (+ chatbot ativo)
+3. (Opcional) **Fluxos** → Importar templates ISP
+4. Cliente no WhatsApp recebe o menu e é roteado por intenção
 
-## Stack
+## Subir rápido (dev)
 
-- Backend: Node 20 + TypeScript + LangGraph (`@langchain/langgraph`)
-- Frontend: React
-- WhatsApp: Baileys
-- Docs: `docs/ISP_AUTOMATION.md`
+```bash
+docker compose -f docker/docker-compose-dev.yml up -d
+cd frontend && npm start
+```
+
+- App: http://localhost:3000  
+- API: http://localhost:8080  
+- Redis host: **6389** (evita conflito com outros projetos na 6379)
+
+Detalhes: [docs/DEV_SETUP.md](docs/DEV_SETUP.md)
 
 ## Login padrão (seed)
 
 - Email: `admin@admin.com`
 - Senha: `123456`
+
+## Stack
+
+- Backend: Node 20 + TypeScript + miniLangGraph + Baileys
+- Frontend: React 17 (CRA)
+- DB: PostgreSQL 14
+- Cache/filas: Redis 6

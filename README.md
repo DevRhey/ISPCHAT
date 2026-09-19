@@ -1,8 +1,14 @@
-# Whaticket SaaS
+# ISPCHAT (Whaticket SaaS + LangGraph ISP)
 
-Plataforma SaaS de atendimento via WhatsApp com filas, tickets, campanhas, integrações, chatbot e relatórios. Monorepo com `backend` (Node.js + TypeScript) e `frontend` (React 17 + CRA).
+Plataforma SaaS de atendimento via WhatsApp com filas, tickets, campanhas, integrações, chatbot e relatórios — estendida com **ISPCHAT**: motor LangGraph e fluxos prontos para provedores de internet.
 
-- Repositório público: `https://github.com/alltomatos/whaticket-saa`
+- Repositório: https://github.com/DevRhey/ISPCHAT
+- Visão ISPCHAT: [ISPCHAT.md](ISPCHAT.md)
+- LangGraph / intenções: [docs/LANGGRAPH_ISPCHAT.md](docs/LANGGRAPH_ISPCHAT.md)
+- Dev local: [docs/DEV_SETUP.md](docs/DEV_SETUP.md)
+- Problemas comuns: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
+
+Monorepo: `backend` (Node.js + TypeScript) e `frontend` (React 17 + CRA).
 
 ## Sumário
 
@@ -11,7 +17,7 @@ Plataforma SaaS de atendimento via WhatsApp com filas, tickets, campanhas, integ
 - Pré-requisitos
 - Variáveis de ambiente
 - Execução local (Node)
-- Execução via Docker
+- Execução via Docker / compose de desenvolvimento
 - Imagens do Docker Hub
 - Deploy em Docker Swarm
 - Personalização de logos
@@ -25,8 +31,9 @@ Plataforma SaaS de atendimento via WhatsApp com filas, tickets, campanhas, integ
 - Campanhas e listas de contatos
 - Mensagens com mídia, áudio, vCards
 - Chat interno e prompts por fila
-- Integrações Typebot / n8n / webhooks
-- **Fluxos ISP nativos** + conectores IXC / SGP / HubSoft — ver [docs/ISP_AUTOMATION.md](docs/ISP_AUTOMATION.md)
+- Integrações Typebot / n8n / webhooks / **ISPCHAT LangGraph**
+- **Fluxos ISP nativos** + conectores IXC / SGP / HubSoft — [docs/ISP_AUTOMATION.md](docs/ISP_AUTOMATION.md)
+- **25+ intenções ISP** no grafo conversacional — [docs/LANGGRAPH_ISPCHAT.md](docs/LANGGRAPH_ISPCHAT.md)
 - Painéis e relatórios
 
 ## Arquitetura e diretórios
@@ -34,13 +41,11 @@ Plataforma SaaS de atendimento via WhatsApp com filas, tickets, campanhas, integ
 - `backend/`: API, serviços, filas e WebSocket
 - `frontend/`: SPA React
 - `docker/`: arquivos Docker
-  - `Dockerfile.backend`
-  - `Dockerfile.frontend`
-  - `docker-compose-local.yml`
-  - `docker-compose-hub.yml`
-  - `docker-compose-swarm.yml`
-  - `backend-entrypoint.sh`
-  - `nginx-frontend.conf`
+  - `Dockerfile.backend` / `Dockerfile.frontend`
+  - `docker-compose-dev.yml` — **recomendado para desenvolvimento** (Postgres/Redis/backend Node 20)
+  - `docker-compose-local.yml` / `docker-compose-hub.yml` / `docker-compose-swarm.yml`
+  - `backend-entrypoint.sh` / `nginx-frontend.conf`
+- `docs/`: ISPCHAT, automação ISP, setup e troubleshooting
 
 ## Pré-requisitos
 
@@ -93,22 +98,35 @@ cd ../frontend && npm run build
 
 ## Execução via Docker
 
-Compose local (build a partir do código):
+### Desenvolvimento (recomendado)
+
+```bash
+docker compose -f docker/docker-compose-dev.yml up -d
+cd frontend && npm start
+```
+
+Portas host:
+
+| Serviço | Porta |
+|---------|-------|
+| Frontend CRA | 3000 |
+| Backend | 8080 |
+| Postgres | 5432 |
+| Redis Whaticket | **6389** (6379 no container; evita conflito local) |
+
+Guia completo: [docs/DEV_SETUP.md](docs/DEV_SETUP.md).
+
+### Compose local (build de produção)
 
 ```bash
 docker compose -f docker/docker-compose-local.yml up -d
 ```
 
-Compose usando imagens do Hub:
+### Compose com imagens do Hub
 
 ```bash
 docker compose -f docker/docker-compose-hub.yml up -d
 ```
-
-Portas padrão:
-
-- Backend em `8080`
-- Frontend em `3000` (mapeado para `80` no container)
 
 ## Imagens do Docker Hub
 

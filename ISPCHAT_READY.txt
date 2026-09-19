@@ -1,0 +1,14 @@
+# Aviso — tunnels Cloudflare
+
+As URLs `*.trycloudflare.com` geradas por `cloudflared tunnel --url` são **efêmeras**.
+
+Não use este arquivo como fonte de verdade de produção. Para expor de novo:
+
+```bash
+cloudflared tunnel --url http://localhost:3000
+cloudflared tunnel --url http://localhost:8080
+```
+
+Repositório: https://github.com/DevRhey/ISPCHAT  
+Login seed: admin@admin.com / 123456  
+Docs: ISPCHAT.md e docs/

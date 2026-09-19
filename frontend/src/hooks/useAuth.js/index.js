@@ -111,30 +111,32 @@ const useAuth = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     (async () => {
-      if (token) {
-        try {
-          api.defaults.headers.Authorization = `Bearer ${JSON.parse(token)}`;
-          const data = await refreshSession();
-          setIsAuth(true);
-          if (data?.user) setUser(data.user);
-        } catch (err) {
-          // Token de acesso ainda pode ser válido: tenta /auth/me
+      try {
+        if (token) {
           try {
-            const { data } = await api.get("/auth/me");
-            const companyId = localStorage.getItem("companyId");
+            api.defaults.headers.Authorization = `Bearer ${JSON.parse(token)}`;
+            const data = await refreshSession();
             setIsAuth(true);
-            setUser((prev) => ({
-              ...prev,
-              ...data,
-              companyId: data.companyId || (companyId ? Number(companyId) : prev.companyId)
-            }));
-          } catch (meErr) {
-            clearSession();
-            toastError(err);
+            if (data?.user) setUser(data.user);
+          } catch (err) {
+            // Token de acesso ainda pode ser válido: tenta /auth/me
+            try {
+              const { data } = await api.get("/auth/me");
+              const companyId = localStorage.getItem("companyId");
+              setIsAuth(true);
+              setUser((prev) => ({
+                ...prev,
+                ...data,
+                companyId: data.companyId || (companyId ? Number(companyId) : prev.companyId)
+              }));
+            } catch (meErr) {
+              clearSession();
+            }
           }
         }
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     })();
   }, []);
 
