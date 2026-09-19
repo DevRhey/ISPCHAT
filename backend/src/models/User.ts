@@ -45,6 +45,9 @@ class User extends Model<User> {
   @Column
   passwordHash: string;
 
+  @Column
+  resetPassword: string;
+
   @Default(0)
   @Column
   tokenVersion: number;

@@ -11,6 +11,8 @@ import ColorModeContext from "./layout/themeContext";
 import { SocketContext, SocketManager } from './context/Socket/SocketContext';
 
 import Routes from "./routes";
+import ErrorBoundary from "./components/ErrorBoundary";
+import OfflineBanner from "./components/OfflineBanner";
 
 const queryClient = new QueryClient();
 
@@ -115,7 +117,10 @@ const App = () => {
             <ThemeProvider theme={theme}>
                 <QueryClientProvider client={queryClient}>
                   <SocketContext.Provider value={SocketManager}>
-                      <Routes />
+                      <ErrorBoundary>
+                        <OfflineBanner />
+                        <Routes />
+                      </ErrorBoundary>
                   </SocketContext.Provider>
                 </QueryClientProvider>
             </ThemeProvider>

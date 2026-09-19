@@ -37,6 +37,7 @@ import { useDate } from "../hooks/useDate";
 import ColorModeContext from "../layout/themeContext";
 import Brightness4Icon from '@material-ui/icons/Brightness4';
 import Brightness7Icon from '@material-ui/icons/Brightness7';
+import OnboardingWizard from "../components/OnboardingWizard";
 
 const drawerWidth = 240;
 
@@ -280,6 +281,7 @@ const LoggedInLayout = ({ children }) => {
 
   return (
     <div className={classes.root}>
+      {user?.id ? <OnboardingWizard /> : null}
       <Drawer
         variant={drawerVariant}
         className={drawerOpen ? classes.drawerPaper : classes.drawerPaperClose}

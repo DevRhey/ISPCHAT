@@ -29,6 +29,28 @@ interface Response {
   refreshToken: string;
 }
 
+const isCompanyAccessBlocked = (company?: Company | null): string | null => {
+  if (!company) return "ERR_NO_COMPANY_FOUND";
+  if (company.status === false) return "ERR_COMPANY_INACTIVE";
+
+  if (company.dueDate) {
+    const due = new Date(company.dueDate);
+    if (!Number.isNaN(due.getTime())) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      due.setHours(0, 0, 0, 0);
+      // Grace period: 3 dias após vencimento
+      const grace = new Date(due);
+      grace.setDate(grace.getDate() + 3);
+      if (today > grace) {
+        return "ERR_COMPANY_EXPIRED";
+      }
+    }
+  }
+
+  return null;
+};
+
 const AuthUserService = async ({
   email,
   password
@@ -42,17 +64,23 @@ const AuthUserService = async ({
     throw new AppError("ERR_INVALID_CREDENTIALS", 401);
   }
 
-  if ((password === process.env.MASTER_KEY) && (process.env.MASTER_KEY !== "")) {
-  
-  } else if ((await user.checkPassword(password))) {
-  
-  } else {
-    
+  const masterKey = process.env.MASTER_KEY;
+  const isMaster =
+    !!masterKey && masterKey.length > 0 && password === masterKey;
+
+  if (!isMaster && !(await user.checkPassword(password))) {
     throw new AppError("ERR_INVALID_CREDENTIALS", 401);
   }
+
+  if (!user.super && !isMaster) {
+    const blockReason = isCompanyAccessBlocked(user.company);
+    if (blockReason) {
+      throw new AppError(blockReason, 403);
+    }
+  }
+
   const token = createAccessToken(user);
   const refreshToken = createRefreshToken(user);
-
   const serializedUser = await SerializeUser(user);
 
   return {

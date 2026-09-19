@@ -16,7 +16,98 @@ import { logger } from "../../utils/logger";
 
 type Session = any;
 
-const MAX_STEPS = 12;
+type FlowMessageSender = (params: {
+  body: string;
+  ticket: Ticket;
+}) => Promise<any>;
+
+/** Permite simulação sem WhatsApp real (captura respostas do bot). */
+let flowMessageSenderOverride: FlowMessageSender | null = null;
+
+export const setFlowMessageSender = (fn: FlowMessageSender | null) => {
+  flowMessageSenderOverride = fn;
+};
+
+const sendBotMessage = async (params: {
+  body: string;
+  ticket: Ticket;
+}): Promise<any> => {
+  if (flowMessageSenderOverride) {
+    return flowMessageSenderOverride(params);
+  }
+  return SendWhatsAppMessage(params);
+};
+
+const MAX_STEPS = 24;
+
+type MenuOption = {
+  option: string;
+  label: string;
+  keywords?: string[];
+};
+
+/** Tipos de conexão estilo Z-PRO Chat Flow */
+export type ConnectionKind = "auto" | "default" | "keyword" | "exact";
+
+export const parseEdgeKind = (condition?: string | null): {
+  kind: ConnectionKind;
+  keywords: string[];
+  exact?: string;
+} => {
+  const c = String(condition || "").trim();
+  if (!c || c === "default") return { kind: "default", keywords: [] };
+  if (c === "auto" || c === "__auto__") return { kind: "auto", keywords: [] };
+  if (c.startsWith("kw:") || c.startsWith("keyword:")) {
+    const raw = c.replace(/^kw:/i, "").replace(/^keyword:/i, "");
+    return {
+      kind: "keyword",
+      keywords: raw
+        .split(/[,|;]/)
+        .map(s => s.trim().toLowerCase())
+        .filter(Boolean)
+    };
+  }
+  return { kind: "exact", keywords: [], exact: c };
+};
+
+const bodyMatchesKeywords = (body: string, keywords: string[]): boolean => {
+  const text = String(body || "").trim().toLowerCase();
+  if (!text || !keywords.length) return false;
+  return keywords.some(k => k.length >= 1 && (text === k || text.includes(k)));
+};
+
+/** Casa número da opção, keywords ou trecho do rótulo (gatilhos). */
+const matchMenuOption = (
+  options: MenuOption[],
+  body: string
+): MenuOption | undefined => {
+  const raw = String(body || "").trim();
+  if (!raw) return undefined;
+  const text = raw.toLowerCase();
+
+  const byNumber = options.find(o => String(o.option) === raw);
+  if (byNumber) return byNumber;
+
+  for (const o of options) {
+    const kws = [
+      ...(o.keywords || []),
+      o.label,
+      String(o.option)
+    ]
+      .filter(Boolean)
+      .map(k => String(k).toLowerCase());
+
+    if (kws.some(k => k.length >= 2 && (text === k || text.includes(k)))) {
+      return o;
+    }
+  }
+
+  if (["menu", "voltar", "inicio", "início"].includes(text)) {
+    return options.find(o => String(o.option) === "0");
+  }
+
+  return undefined;
+};
 
 const render = (text: string, vars: Record<string, any>): string => {
   return String(text || "").replace(/\{\{(\w+)\}\}/g, (_, key) => {
@@ -37,23 +128,89 @@ const saveVars = async (ticket: Ticket, vars: Record<string, any>) => {
   await ticket.update({ flowVariables: JSON.stringify(vars) });
 };
 
+/**
+ * Resolve próxima aresta (Z-PRO): keywords primeiro, depois exact, depois default.
+ * `mode`:
+ *  - reply: avaliando resposta do usuário
+ *  - autoOnly: só segue arestas automáticas (encadeamento)
+ */
 const findNext = (
   edges: FlowEdge[],
   sourceKey: string,
-  condition?: string | null
+  bodyOrCondition?: string | null,
+  mode: "reply" | "autoOnly" | "exact" = "exact"
 ): FlowEdge | undefined => {
   const fromSource = edges.filter(e => e.sourceNodeKey === sourceKey);
   if (!fromSource.length) return undefined;
 
-  if (condition !== undefined && condition !== null && condition !== "") {
-    const exact = fromSource.find(e => String(e.condition) === String(condition));
-    if (exact) return exact;
+  const parsed = fromSource.map(e => ({ edge: e, ...parseEdgeKind(e.condition) }));
+
+  if (mode === "autoOnly") {
+    const auto = parsed.find(p => p.kind === "auto");
+    if (auto) return auto.edge;
+    // Legado: uma única aresta sem condition = automático
+    if (
+      fromSource.length === 1 &&
+      !String(fromSource[0].condition || "").trim()
+    ) {
+      return fromSource[0];
+    }
+    return undefined;
+  }
+
+  if (mode === "exact" && bodyOrCondition != null && bodyOrCondition !== "") {
+    const exact = parsed.find(
+      p => p.kind === "exact" && p.exact === String(bodyOrCondition)
+    );
+    if (exact) return exact.edge;
+    const asKw = parsed.find(
+      p =>
+        p.kind === "keyword" &&
+        bodyMatchesKeywords(String(bodyOrCondition), p.keywords)
+    );
+    if (asKw) return asKw.edge;
+  }
+
+  if (mode === "reply") {
+    const body = String(bodyOrCondition || "");
+    const kwHit = parsed.find(
+      p => p.kind === "keyword" && bodyMatchesKeywords(body, p.keywords)
+    );
+    if (kwHit) return kwHit.edge;
+
+    const exactHit = parsed.find(
+      p => p.kind === "exact" && p.exact === body.trim()
+    );
+    if (exactHit) return exactHit.edge;
+
+    const def = parsed.find(p => p.kind === "default");
+    if (def) return def.edge;
   }
 
   return (
-    fromSource.find(e => !e.condition || e.condition === "default") ||
+    parsed.find(p => p.kind === "default")?.edge ||
+    parsed.find(p => p.kind === "auto")?.edge ||
     fromSource[0]
   );
+};
+
+const eHasExplicitDefault = (e: FlowEdge) =>
+  String(e.condition || "").trim() === "default";
+
+/** Após enviar mensagem: auto continua; senão espera resposta (default/keyword). */
+const shouldWaitAfterMessage = (edges: FlowEdge[], sourceKey: string): boolean => {
+  const fromSource = edges.filter(e => e.sourceNodeKey === sourceKey);
+  if (!fromSource.length) return false;
+  const kinds = fromSource.map(e => parseEdgeKind(e.condition).kind);
+  // Só automáticas (ou legado sem condition numa única aresta)
+  if (kinds.every(k => k === "auto")) return false;
+  if (
+    fromSource.length === 1 &&
+    !String(fromSource[0].condition || "").trim()
+  ) {
+    return false;
+  }
+  return kinds.some(k => k === "keyword" || k === "default" || k === "exact");
 };
 
 const loadFlowGraph = async (flowId: number) => {
@@ -107,6 +264,8 @@ const runFlowEngine = async (
 
   const body = getBodyMessage(msg) || "";
   let vars = parseVars(ticket);
+  // Evita que o mesmo texto (ex.: "1") selecione menu pai e submenu no mesmo turno
+  let menuAutoUsed = false;
 
   vars.contactName = ticket.contact?.name || "";
   vars.contactNumber = ticket.contact?.number || "";
@@ -115,7 +274,7 @@ const runFlowEngine = async (
   // Comandos globais
   if (body === "#" || body.toLowerCase() === "#sair") {
     await clearFlowState(ticket);
-    await SendWhatsAppMessage({
+    await sendBotMessage({
       body: "Atendimento automático encerrado. Em breve um atendente falará com você.",
       ticket
     });
@@ -137,7 +296,7 @@ const runFlowEngine = async (
     return false;
   }
 
-  // Se estamos esperando input/menu
+  // Se estamos esperando resposta (input / menu / message com conexões default|keyword)
   if (vars._waiting === node.nodeKey) {
     const cfg = node.parseConfig();
 
@@ -146,7 +305,7 @@ const runFlowEngine = async (
       vars[varName] = body.trim();
       delete vars._waiting;
       await saveVars(ticket, vars);
-      const next = findNext(edges, node.nodeKey);
+      const next = findNext(edges, node.nodeKey, body, "reply") || findNext(edges, node.nodeKey);
       if (!next) {
         await clearFlowState(ticket);
         return true;
@@ -155,11 +314,12 @@ const runFlowEngine = async (
       node = nodes.find(n => n.nodeKey === nodeKey);
       await ticket.update({ flowNodeKey: nodeKey });
     } else if (node.type === "menu") {
-      const options: Array<{ option: string; label: string }> = cfg.options || [];
-      const chosen = options.find(o => String(o.option) === body.trim());
+      const options: MenuOption[] = cfg.options || [];
+      const chosen = matchMenuOption(options, body);
       if (!chosen) {
-        await SendWhatsAppMessage({
-          body: "Opção inválida. Digite o número da opção ou #sair.",
+        await sendBotMessage({
+          body:
+            "Opção inválida. Digite o *número*, uma palavra-chave (ex.: boleto, internet, plano) ou *#sair*.",
           ticket
         });
         return true;
@@ -167,11 +327,30 @@ const runFlowEngine = async (
       delete vars._waiting;
       vars.lastOption = chosen.option;
       await saveVars(ticket, vars);
-      const next = findNext(edges, node.nodeKey, chosen.option);
+      const next =
+        findNext(edges, node.nodeKey, chosen.option, "exact") ||
+        findNext(edges, node.nodeKey, body, "reply");
       if (!next) {
         await clearFlowState(ticket);
         return true;
       }
+      // Impede o submenu de reutilizar o mesmo dígito neste turno
+      menuAutoUsed = true;
+      nodeKey = next.targetNodeKey;
+      node = nodes.find(n => n.nodeKey === nodeKey);
+      await ticket.update({ flowNodeKey: nodeKey });
+    } else if (node.type === "message" || node.type === "start") {
+      const next = findNext(edges, node.nodeKey, body, "reply");
+      if (!next) {
+        const settingsNode = nodes.find(n => n.type === "settings");
+        const fb =
+          settingsNode?.parseConfig()?.fallbackMessage ||
+          "Não entendi. Digite uma opção válida, *menu* ou *#sair*.";
+        await sendBotMessage({ body: fb, ticket });
+        return true;
+      }
+      delete vars._waiting;
+      await saveVars(ticket, vars);
       nodeKey = next.targetNodeKey;
       node = nodes.find(n => n.nodeKey === nodeKey);
       await ticket.update({ flowNodeKey: nodeKey });
@@ -185,7 +364,23 @@ const runFlowEngine = async (
 
     switch (node.type) {
       case "start": {
-        const next = findNext(edges, node.nodeKey);
+        const next =
+          findNext(edges, node.nodeKey, null, "autoOnly") ||
+          findNext(edges, node.nodeKey);
+        if (!next) {
+          await clearFlowState(ticket);
+          return true;
+        }
+        node = nodes.find(n => n.nodeKey === next.targetNodeKey);
+        await ticket.update({ flowNodeKey: node?.nodeKey || null });
+        break;
+      }
+
+      case "settings": {
+        // Bloco de configuração global (Z-PRO): não envia mensagem; só avança
+        const next =
+          findNext(edges, node.nodeKey, null, "autoOnly") ||
+          findNext(edges, node.nodeKey);
         if (!next) {
           await clearFlowState(ticket);
           return true;
@@ -197,8 +392,18 @@ const runFlowEngine = async (
 
       case "message": {
         const text = render(node.message || cfg.text || "", vars);
-        if (text) await SendWhatsAppMessage({ body: text, ticket });
-        const next = findNext(edges, node.nodeKey);
+        if (text) await sendBotMessage({ body: text, ticket });
+
+        if (shouldWaitAfterMessage(edges, node.nodeKey)) {
+          vars._waiting = node.nodeKey;
+          await saveVars(ticket, vars);
+          await ticket.update({ flowNodeKey: node.nodeKey });
+          return true;
+        }
+
+        const next =
+          findNext(edges, node.nodeKey, null, "autoOnly") ||
+          findNext(edges, node.nodeKey);
         if (!next) {
           await clearFlowState(ticket);
           return true;
@@ -209,12 +414,32 @@ const runFlowEngine = async (
       }
 
       case "menu": {
-        const options: Array<{ option: string; label: string }> = cfg.options || [];
+        const options: MenuOption[] = cfg.options || [];
+        // Gatilho por keyword só 1x por turno (não cascateia pai→filho com o mesmo "1"/"2")
+        const auto = matchMenuOption(options, body);
+        if (auto && vars._waiting !== node.nodeKey && !menuAutoUsed) {
+          menuAutoUsed = true;
+          vars.lastOption = auto.option;
+          delete vars._waiting;
+          await saveVars(ticket, vars);
+          const next = findNext(edges, node.nodeKey, auto.option);
+          if (next) {
+            node = nodes.find(n => n.nodeKey === next.targetNodeKey);
+            await ticket.update({ flowNodeKey: node?.nodeKey || null });
+            break;
+          }
+        }
+
         let text = render(node.message || "", vars);
         if (!text) text = "Escolha uma opção:";
         const lines = options.map(o => `${o.option} - ${o.label}`);
-        await SendWhatsAppMessage({
-          body: [text, ...lines, "", "Digite 0 para voltar ou #sair para encerrar."].join("\n"),
+        await sendBotMessage({
+          body: [
+            text,
+            ...lines,
+            "",
+            "_Dica:_ digite o número, palavra-chave, *0* para voltar ou *#sair*."
+          ].join("\n"),
           ticket
         });
         vars._waiting = node.nodeKey;
@@ -225,7 +450,7 @@ const runFlowEngine = async (
 
       case "input": {
         const prompt = render(node.message || cfg.prompt || "Digite sua resposta:", vars);
-        await SendWhatsAppMessage({ body: prompt, ticket });
+        await sendBotMessage({ body: prompt, ticket });
         vars._waiting = node.nodeKey;
         await saveVars(ticket, vars);
         await ticket.update({ flowNodeKey: node.nodeKey });
@@ -280,14 +505,14 @@ const runFlowEngine = async (
           const storeAs = cfg.storeAs || "httpResult";
           vars[storeAs] = data;
           if (cfg.messageTemplate) {
-            await SendWhatsAppMessage({
+            await sendBotMessage({
               body: render(cfg.messageTemplate, { ...vars, ...(typeof data === "object" ? data : {}) }),
               ticket
             });
           }
         } catch (err: any) {
           logger.error({ err: err?.message }, "FlowEngine http node failed");
-          await SendWhatsAppMessage({
+          await sendBotMessage({
             body: cfg.errorMessage || "Não consegui consultar o serviço agora. Tente novamente.",
             ticket
           });
@@ -316,7 +541,7 @@ const runFlowEngine = async (
         vars.ispResult = result.data;
         vars.ispOk = result.ok;
         if (result.message) {
-          await SendWhatsAppMessage({ body: render(result.message, vars), ticket });
+          await sendBotMessage({ body: render(result.message, vars), ticket });
         }
         await saveVars(ticket, vars);
         const next = findNext(edges, node.nodeKey, result.ok ? "true" : "false");
@@ -349,7 +574,7 @@ const runFlowEngine = async (
           companyId: ticket.companyId
         });
         if (cfg.message || node.message) {
-          await SendWhatsAppMessage({
+          await sendBotMessage({
             body: render(cfg.message || node.message, vars),
             ticket
           });
@@ -360,7 +585,7 @@ const runFlowEngine = async (
       case "typebot": {
         const integrationId = cfg.integrationId || queue?.integrationId;
         if (!integrationId) {
-          await SendWhatsAppMessage({
+          await sendBotMessage({
             body: "Integração Typebot não configurada neste fluxo.",
             ticket
           });
@@ -384,7 +609,7 @@ const runFlowEngine = async (
       case "n8n": {
         const integrationId = cfg.integrationId || queue?.integrationId;
         if (!integrationId) {
-          await SendWhatsAppMessage({
+          await sendBotMessage({
             body: "Integração n8n não configurada neste fluxo.",
             ticket
           });
@@ -409,7 +634,7 @@ const runFlowEngine = async (
 
       case "end": {
         if (node.message || cfg.message) {
-          await SendWhatsAppMessage({
+          await sendBotMessage({
             body: render(node.message || cfg.message, vars),
             ticket
           });

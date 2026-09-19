@@ -14,6 +14,11 @@ services:
       - NODE_ENV=development
       - BACKEND_URL=http://localhost:8080
       - FRONTEND_URL=http://localhost:3000
+      # Necessário p/ login via Cloudflare (cookies cross-site SameSite=None)
+      - COOKIE_SECURE=true
+      - ALLOW_ISP_DEMO=true
+      - GERENCIANET_WEBHOOK_SECRET=dev-webhook-secret-change-in-prod
+      - WHATSAPP_CLOUD_ENABLED=false
       - PROXY_PORT=8080
       - PORT=8080
       - DB_DIALECT=postgres
@@ -32,9 +37,21 @@ services:
       - CLOSED_SEND_BY_ME=true
     command:
       - node
-      - --max-old-space-size=4096
+      - --max-old-space-size=3072
       - dist/server.js
-    # Para rebuild completo (npm/apt), use: docker compose run --rm backend bash -lc "apt-get update && apt-get install -y git python3 make g++ ffmpeg && npm install && npm run build"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8080/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+        ]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    mem_limit: 3584m
     depends_on:
       - postgres
       - redis
@@ -53,6 +70,11 @@ services:
       - POSTGRES_DB=whaticket
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U whaticket -d whaticket"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - whaticket-network
 
@@ -65,6 +87,11 @@ services:
     command: redis-server --requirepass whaticket
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "whaticket", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - whaticket-network
 

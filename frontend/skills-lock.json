@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "e2e-playwright-testing": {
+      "source": "asyrafhussin/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/e2e-playwright-testing/SKILL.md",
+      "computedHash": "254b589a4f86e03af4bf5003742cb6886090731fa83f51100280b3c3c3e6843e"
+    },
+    "playwright": {
+      "source": "secondsky/claude-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/playwright/skills/playwright/SKILL.md",
+      "computedHash": "fbbea9f3498ba12d8edf5986df64b752dd813d8dc64f6a0582ab96ce56070728"
+    }
+  }
+}

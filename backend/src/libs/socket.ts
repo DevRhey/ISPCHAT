@@ -33,13 +33,22 @@ export const initIO = (httpServer: Server): SocketIO => {
 
   io = new SocketIO(httpServer, {
     cors: {
-      origin: allowedOrigins,
+      origin: (origin, callback) => {
+        if (
+          !origin ||
+          allowedOrigins.includes(origin) ||
+          /\.trycloudflare\.com$/i.test(origin)
+        ) {
+          return callback(null, true);
+        }
+        return callback(new Error(`Socket CORS blocked: ${origin}`), false);
+      },
       credentials: true
     },
     path: "/socket.io/",
     connectTimeout: 10000,
     allowUpgrades: true,
-    transports: ["websocket"]
+    transports: ["websocket", "polling"]
   });
 
   // Registrar log adicional se estiver em produção e não usar HTTPS

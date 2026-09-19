@@ -292,6 +292,14 @@ const Login = () => {
                                 </Link>
                             </Grid>
                         </Grid>
+                        <Link
+                            component={RouterLink}
+                            to="/home"
+                            className={classes.linkText}
+                            style={{ opacity: 0.75, fontSize: "0.875rem", marginTop: 16 }}
+                        >
+                            Conhecer o ISPCHAT
+                        </Link>
                     </form>
                 </div>
             </div>

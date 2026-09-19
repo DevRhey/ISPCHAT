@@ -379,7 +379,7 @@ const MainListItems = (props) => {
               )}
               <ListItemLink
                 to="/helps"
-                primary={i18n.t("mainDrawer.listItems.helps")}
+                primary="Ajuda ISP"
                 icon={<HelpOutlineIcon />}
               />
             </>
@@ -408,7 +408,7 @@ const MainListItems = (props) => {
 
             <ListItemLink
               small
-              to="/"
+              to="/app"
               primary="Dashboard"
               icon={<DashboardOutlinedIcon />}
             />
@@ -563,7 +563,12 @@ const MainListItems = (props) => {
             )}
             <ListItemLink
               to="/flows"
-              primary="Fluxos ISP"
+              primary="Automações"
+              icon={<AccountTreeOutlinedIcon />}
+            />
+            <ListItemLink
+              to="/flows/editor"
+              primary="Editor gráfico"
               icon={<AccountTreeOutlinedIcon />}
             />
             <ListItemLink

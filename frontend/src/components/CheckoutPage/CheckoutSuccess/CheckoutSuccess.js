@@ -28,7 +28,7 @@ function CheckoutSuccess(props) {
       if (data.action === "CONCLUIDA") {
         toast.success(`Sua licença foi renovada até ${dateToClient(data.company.dueDate)}!`);
         setTimeout(() => {
-          history.push("/");
+          history.push("/app");
         }, 4000);
       }
     });

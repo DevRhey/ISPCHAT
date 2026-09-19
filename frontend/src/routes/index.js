@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense, lazy } from "react";
 import { BrowserRouter, Switch } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
+import { CircularProgress } from "@material-ui/core";
 
 import LoggedInLayout from "../layout";
 import Dashboard from "../pages/Dashboard/";
@@ -9,7 +10,6 @@ import Signup from "../pages/Signup/";
 import Login from "../pages/Login/";
 import Connections from "../pages/Connections/";
 import SettingsCustom from "../pages/SettingsCustom/";
-import Relatorios from "../pages/Relatórios";
 import Financeiro from "../pages/Financeiro/";
 import Users from "../pages/Users";
 import Contacts from "../pages/Contacts/";
@@ -29,7 +29,6 @@ import { WhatsAppsProvider } from "../context/WhatsApp/WhatsAppsContext";
 import Route from "./Route";
 //import kanbanSchedules from "../pages/kanbanSchedules/";
 import Schedules from "../pages/Schedules";
-import Campaigns from "../pages/Campaigns";
 import CampaignsConfig from "../pages/CampaignsConfig";
 import CampaignReport from "../pages/CampaignReport";
 import Annoucements from "../pages/Annoucements";
@@ -44,6 +43,17 @@ import IspConnectors from "../pages/IspConnectors";
 import LogLauncher from "../pages/LogLauncher";
 
 import ForgetPassword from "../pages/ForgetPassWord/"; // Reset PassWd
+import Landing from "../pages/Landing";
+
+const FlowEditor = lazy(() => import("../pages/FlowEditor"));
+const CampaignsLazy = lazy(() => import("../pages/Campaigns"));
+const RelatoriosLazy = lazy(() => import("../pages/Relatórios"));
+
+const LazyFallback = () => (
+  <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
+    <CircularProgress />
+  </div>
+);
 
 const Routes = () => {
   const [showCampaigns, setShowCampaigns] = useState(false);
@@ -61,13 +71,16 @@ const Routes = () => {
 	  <ForwardMessageProvider>
         <TicketsContextProvider>
           <Switch>
+            <Route exact path="/" component={Landing} />
+            <Route exact path="/home" component={Landing} />
             <Route exact path="/login" component={Login} />
             <Route exact path="/signup" component={Signup} />
 			<Route exact path="/forgetpsw" component={ForgetPassword} /> 
             {/* <Route exact path="/create-company" component={Companies} /> */}
             <WhatsAppsProvider>
               <LoggedInLayout>
-                <Route exact path="/" component={Dashboard} isPrivate />
+                <Route exact path="/app" component={Dashboard} isPrivate />
+                <Route exact path="/dashboard" component={Dashboard} isPrivate />
                 <Route
                   exact
                   path="/tickets/:ticketId?"
@@ -107,6 +120,26 @@ const Routes = () => {
                 <Route exact path="/LogLauncher" component={LogLauncher} isPrivate />
                 <Route exact path="/queue-integration" component={QueueIntegration} isPrivate />
                 <Route exact path="/flows" component={Flows} isPrivate />
+                <Route
+                  exact
+                  path="/flows/editor"
+                  component={() => (
+                    <Suspense fallback={<LazyFallback />}>
+                      <FlowEditor />
+                    </Suspense>
+                  )}
+                  isPrivate
+                />
+                <Route
+                  exact
+                  path="/flows/editor/:flowId"
+                  component={() => (
+                    <Suspense fallback={<LazyFallback />}>
+                      <FlowEditor />
+                    </Suspense>
+                  )}
+                  isPrivate
+                />
                 <Route exact path="/isp-connectors" component={IspConnectors} isPrivate />
                 {/*<Route exact path="/kanban-schedules" component={kanbanSchedules} isPrivate />*/}
                 <Route
@@ -127,10 +160,14 @@ const Routes = () => {
                   component={Kanban}
                   isPrivate
                 />
-				<Route
+                <Route
                   exact
                   path="/relatorios"
-                  component={Relatorios}
+                  component={() => (
+                    <Suspense fallback={<LazyFallback />}>
+                      <RelatoriosLazy />
+                    </Suspense>
+                  )}
                   isPrivate
                 />				
                 <Route
@@ -170,7 +207,11 @@ const Routes = () => {
                     <Route
                       exact
                       path="/campaigns"
-                      component={Campaigns}
+                      component={() => (
+                        <Suspense fallback={<LazyFallback />}>
+                          <CampaignsLazy />
+                        </Suspense>
+                      )}
                       isPrivate
                     />
                     <Route

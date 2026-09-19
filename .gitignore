@@ -22,3 +22,11 @@ docker/postgres_data/
 docker/redis_data/
 backend/package-lock.json
 frontend/package-lock.json
+
+# Local ephemeral / secrets (ISPCHAT)
+backend/.env
+frontend/.env.cloudflare
+frontend/.agents/
+scripts/.tunnel-state.json
+scripts/ISPCHAT_PUBLIC.txt
+scripts/sim-results.json

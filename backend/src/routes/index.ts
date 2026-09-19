@@ -35,6 +35,7 @@ import versionRouter from "./versionRoutes";
 import reportsRoutes from './reportsRoutes';
 import flowRoutes from "./flowRoutes";
 import ispConnectorRoutes from "./ispConnectorRoutes";
+import whatsappCloudRoutes from "./whatsappCloudRoutes";
 
 const routes = Router();
 
@@ -71,6 +72,7 @@ routes.use(promptRoutes);
 routes.use(queueIntegrationRoutes);
 routes.use(flowRoutes);
 routes.use(ispConnectorRoutes);
+routes.use(whatsappCloudRoutes);
 routes.use(forgotsRoutes);
 routes.use(reportsRoutes);
 routes.use(versionRouter);

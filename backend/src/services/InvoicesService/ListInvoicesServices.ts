@@ -4,6 +4,7 @@ import Invoices from "../../models/Invoices";
 interface Request {
   searchParam?: string;
   pageNumber?: string;
+  companyId: number;
 }
 
 interface Response {
@@ -14,19 +15,26 @@ interface Response {
 
 const ListInvoicesServices = async ({
   searchParam = "",
-  pageNumber = "1"
+  pageNumber = "1",
+  companyId
 }: Request): Promise<Response> => {
-  const whereCondition = {
-    [Op.or]: [
-      {
-        name: Sequelize.where(
-          Sequelize.fn("LOWER", Sequelize.col("detail")),
-          "LIKE",
-          `%${searchParam.toLowerCase().trim()}%`
-        )
-      }
-    ]
+  const whereCondition: any = {
+    companyId,
+    ...(searchParam
+      ? {
+          [Op.or]: [
+            {
+              name: Sequelize.where(
+                Sequelize.fn("LOWER", Sequelize.col("detail")),
+                "LIKE",
+                `%${searchParam.toLowerCase().trim()}%`
+              )
+            }
+          ]
+        }
+      : {})
   };
+
   const limit = 20;
   const offset = limit * (+pageNumber - 1);
 

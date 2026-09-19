@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Button,
   IconButton,
@@ -16,11 +16,21 @@ import {
   DialogActions,
   TextField,
   FormControlLabel,
-  Switch
+  Switch,
+  Tooltip
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-import { DeleteOutline, Edit, FileCopy } from "@material-ui/icons";
+import {
+  DeleteOutline,
+  Edit,
+  FileCopy,
+  AccountTree,
+  Visibility,
+  Add,
+  PlayArrow
+} from "@material-ui/icons";
 import { toast } from "react-toastify";
+import { useHistory } from "react-router-dom";
 
 import MainContainer from "../../components/MainContainer";
 import MainHeader from "../../components/MainHeader";
@@ -28,6 +38,8 @@ import MainHeaderButtonsWrapper from "../../components/MainHeaderButtonsWrapper"
 import Title from "../../components/Title";
 import TableRowSkeleton from "../../components/TableRowSkeleton";
 import ConfirmationModal from "../../components/ConfirmationModal";
+import FlowGraphCanvas from "../../components/FlowGraphCanvas";
+import EmptyState from "../../components/EmptyState";
 import api from "../../services/api";
 import toastError from "../../errors/toastError";
 
@@ -45,6 +57,12 @@ const useStyles = makeStyles(theme => ({
   jsonField: {
     fontFamily: "monospace",
     fontSize: 12
+  },
+  legend: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: theme.spacing(1),
+    marginBottom: theme.spacing(1)
   }
 }));
 
@@ -61,11 +79,31 @@ const emptyEditor = {
 
 const Flows = () => {
   const classes = useStyles();
+  const history = useHistory();
   const [flows, setFlows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [confirmId, setConfirmId] = useState(null);
   const [editorOpen, setEditorOpen] = useState(false);
+  const [graphOpen, setGraphOpen] = useState(false);
+  const [graphFlow, setGraphFlow] = useState(null);
   const [form, setForm] = useState(emptyEditor);
+  const [installing, setInstalling] = useState(false);
+
+  const editorNodes = useMemo(() => {
+    try {
+      return JSON.parse(form.nodesJson || "[]");
+    } catch {
+      return [];
+    }
+  }, [form.nodesJson]);
+
+  const editorEdges = useMemo(() => {
+    try {
+      return JSON.parse(form.edgesJson || "[]");
+    } catch {
+      return [];
+    }
+  }, [form.edgesJson]);
 
   const loadFlows = async () => {
     setLoading(true);
@@ -100,6 +138,11 @@ const Flows = () => {
       edgesJson: JSON.stringify(flow.edges || [], null, 2)
     });
     setEditorOpen(true);
+  };
+
+  const openGraph = flow => {
+    setGraphFlow(flow);
+    setGraphOpen(true);
   };
 
   const handleSave = async () => {
@@ -172,6 +215,59 @@ const Flows = () => {
     }
   };
 
+  const installMaster = async () => {
+    setInstalling(true);
+    try {
+      const { data } = await api.post("/flows/templates/master-atendimento", {});
+      toast.success(
+        data.created
+          ? `Fluxo unificado criado e vinculado à fila ${data.boundQueueId || "—"}`
+          : `Fluxo unificado atualizado (fila ${data.boundQueueId || "—"})`
+      );
+      loadFlows();
+      if (data.flow) openGraph(data.flow);
+    } catch (err) {
+      toastError(err);
+    } finally {
+      setInstalling(false);
+    }
+  };
+
+  const simulateFlow = async flow => {
+    try {
+      const { data } = await api.post("/flows/simulate", {
+        scenario: "custom",
+        queueId: flow.queueId || undefined,
+        messages: ["1", "1"],
+        contactName: "Simulação UI"
+      });
+      toast.success(
+        data?.notes?.join?.(" · ") ||
+          `Simulação OK · ticket #${data?.ticketId || "—"} · nó ${data?.finalNodeKey || "—"}`
+      );
+    } catch (err) {
+      toastError(err);
+    }
+  };
+
+  const publishFlow = async flow => {
+    try {
+      await api.put(`/flows/${flow.id}`, {
+        name: flow.name,
+        description: flow.description,
+        active: true,
+        queueId: flow.queueId,
+        entryNodeKey: flow.entryNodeKey,
+        nodes: flow.nodes,
+        edges: flow.edges
+      });
+      toast.success("Fluxo publicado (ativo)");
+      loadFlows();
+    } catch (err) {
+      toastError(err);
+    }
+  };
+
   return (
     <MainContainer>
       <ConfirmationModal
@@ -184,23 +280,49 @@ const Flows = () => {
       </ConfirmationModal>
 
       <MainHeader>
-        <Title>Fluxos (ISP)</Title>
+        <Title>Automações (LangGraph)</Title>
         <MainHeaderButtonsWrapper>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => history.push("/flows/editor")}
+            startIcon={<Add />}
+          >
+            Nova automação gráfica
+          </Button>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={installMaster}
+            disabled={installing}
+            startIcon={<AccountTree />}
+          >
+            Instalar atendimento unificado
+          </Button>
           <Button variant="outlined" color="primary" onClick={importIsp} startIcon={<FileCopy />}>
             Importar templates ISP
           </Button>
-          <Button variant="contained" color="primary" onClick={openCreate}>
-            Novo fluxo
+          <Button variant="outlined" onClick={openCreate}>
+            Novo (JSON)
           </Button>
         </MainHeaderButtonsWrapper>
       </MainHeader>
 
       <Typography className={classes.hint} variant="body2">
-        Vincule um fluxo à fila (campo flowId na fila) para o bot nativo assumir no lugar do menu QueueOptions.
-        Guia: docs/ISP_AUTOMATION.md
+        Use o <strong>editor gráfico</strong> (React Flow / estilo LangGraph) para montar menus,
+        gatilhos, ISP actions e transferências. Vincule o fluxo à fila para rodar no WhatsApp.
+        Evite integração <em>langgraph</em> na mesma fila se quiser o grafo visual determinístico.
       </Typography>
 
       <Paper className={classes.mainPaper} variant="outlined">
+        {!loading && flows.length === 0 ? (
+          <EmptyState
+            title="Nenhum fluxo ainda"
+            description="Instale o atendimento ISP unificado ou abra o editor gráfico para criar sua primeira jornada."
+            ctaLabel="Instalar fluxo master ISP"
+            onCta={installMaster}
+          />
+        ) : (
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -228,9 +350,37 @@ const Flows = () => {
                   />
                 </TableCell>
                 <TableCell align="center">
-                  <IconButton size="small" onClick={() => openEdit(flow)}>
-                    <Edit />
-                  </IconButton>
+                  <Tooltip title="Testar fluxo">
+                    <IconButton size="small" onClick={() => simulateFlow(flow)}>
+                      <PlayArrow />
+                    </IconButton>
+                  </Tooltip>
+                  {!flow.active && (
+                    <Tooltip title="Publicar">
+                      <Button size="small" color="primary" onClick={() => publishFlow(flow)}>
+                        Publicar
+                      </Button>
+                    </Tooltip>
+                  )}
+                  <Tooltip title="Editor gráfico LangGraph">
+                    <IconButton
+                      size="small"
+                      color="primary"
+                      onClick={() => history.push(`/flows/editor/${flow.id}`)}
+                    >
+                      <AccountTree />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Pré-visualizar">
+                    <IconButton size="small" onClick={() => openGraph(flow)}>
+                      <Visibility />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Editar JSON">
+                    <IconButton size="small" onClick={() => openEdit(flow)}>
+                      <Edit />
+                    </IconButton>
+                  </Tooltip>
                   <IconButton size="small" onClick={() => setConfirmId(flow.id)}>
                     <DeleteOutline />
                   </IconButton>
@@ -240,9 +390,36 @@ const Flows = () => {
             {loading && <TableRowSkeleton columns={5} />}
           </TableBody>
         </Table>
+        )}
       </Paper>
 
-      <Dialog open={editorOpen} onClose={() => setEditorOpen(false)} maxWidth="md" fullWidth>
+      <Dialog open={graphOpen} onClose={() => setGraphOpen(false)} maxWidth="lg" fullWidth>
+        <DialogTitle>{graphFlow?.name || "Fluxo"} — visão gráfica</DialogTitle>
+        <DialogContent dividers>
+          <div className={classes.legend}>
+            <Chip size="small" label="menu" style={{ background: "#6a1b9a", color: "#fff" }} />
+            <Chip size="small" label="isp_action" style={{ background: "#ef6c00", color: "#fff" }} />
+            <Chip size="small" label="transfer" style={{ background: "#c62828", color: "#fff" }} />
+            <Chip size="small" label="input" style={{ background: "#00838f", color: "#fff" }} />
+            <Chip size="small" label="message" style={{ background: "#1565c0", color: "#fff" }} />
+          </div>
+          <FlowGraphCanvas nodes={graphFlow?.nodes || []} edges={graphFlow?.edges || []} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setGraphOpen(false)}>Fechar</Button>
+          <Button
+            color="primary"
+            onClick={() => {
+              setGraphOpen(false);
+              if (graphFlow) history.push(`/flows/editor/${graphFlow.id}`);
+            }}
+          >
+            Abrir editor gráfico
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={editorOpen} onClose={() => setEditorOpen(false)} maxWidth="lg" fullWidth>
         <DialogTitle>{form.id ? "Editar fluxo" : "Novo fluxo"}</DialogTitle>
         <DialogContent dividers>
           <TextField
@@ -287,6 +464,12 @@ const Flows = () => {
             }
             label="Ativo"
           />
+
+          <Typography variant="subtitle2" style={{ marginTop: 12 }}>
+            Pré-visualização gráfica
+          </Typography>
+          <FlowGraphCanvas nodes={editorNodes} edges={editorEdges} />
+
           <TextField
             label="Nós (JSON)"
             fullWidth

@@ -65,6 +65,8 @@ const apiLimiter = rateLimit({
 });
 
 app.use('/auth', apiLimiter);
+app.use('/forgetpassword', apiLimiter);
+app.use('/resetpasswords', apiLimiter);
 
 const allowedOrigins = [
   process.env.FRONTEND_URL,
@@ -82,17 +84,73 @@ app.use(
         allowedOrigins.includes(origin) ||
         /\.trycloudflare\.com$/i.test(origin)
       ) {
-        return callback(null, true);
+        // Com credentials, refletir o Origin explícito (não usar wildcard)
+        return callback(null, origin || true);
       }
       return callback(new Error(`CORS blocked for origin: ${origin}`));
     },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: [
+      "Origin",
+      "X-Requested-With",
+      "Content-Type",
+      "Accept",
+      "Authorization",
+      "x-refresh-token"
+    ]
   })
 );
 
 app.use(cookieParser());
 app.use(express.json());
+
+// Healthcheck leve (Docker / watchdog) — sem DB para não falhar em blip
+app.get("/health", (_req, res) => {
+  res.status(200).json({
+    ok: true,
+    uptime: process.uptime(),
+    ts: Date.now()
+  });
+});
+
+// Readiness: DB + Redis (quando disponíveis)
+app.get("/ready", async (_req, res) => {
+  const checks: Record<string, string> = { api: "ok" };
+  let ready = true;
+
+  try {
+    const sequelize = (await import("./database")).default;
+    await sequelize.authenticate();
+    checks.database = "ok";
+  } catch {
+    checks.database = "fail";
+    ready = false;
+  }
+
+  try {
+    const Redis = (await import("ioredis")).default;
+    const redis = new Redis(process.env.REDIS_URI || process.env.REDIS_URL || "redis://127.0.0.1:6379", {
+      maxRetriesPerRequest: 1,
+      connectTimeout: 2000,
+      lazyConnect: true
+    });
+    await redis.connect();
+    const pong = await redis.ping();
+    checks.redis = pong === "PONG" ? "ok" : "fail";
+    await redis.quit();
+    if (checks.redis !== "ok") ready = false;
+  } catch {
+    checks.redis = "fail";
+    ready = false;
+  }
+
+  res.status(ready ? 200 : 503).json({
+    ok: ready,
+    checks,
+    ts: Date.now()
+  });
+});
+
 app.use(Sentry.Handlers.requestHandler());
 app.use("/public", express.static(uploadConfig.directory));
 app.use(routes);

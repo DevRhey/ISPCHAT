@@ -25,6 +25,7 @@ import MainHeader from "../../components/MainHeader";
 import MainHeaderButtonsWrapper from "../../components/MainHeaderButtonsWrapper";
 import Title from "../../components/Title";
 import ConfirmationModal from "../../components/ConfirmationModal";
+import EmptyState from "../../components/EmptyState";
 import api from "../../services/api";
 import toastError from "../../errors/toastError";
 
@@ -35,7 +36,13 @@ const useStyles = makeStyles(theme => ({
     overflowY: "scroll",
     ...theme.scrollbarStyles
   },
-  hint: { marginBottom: theme.spacing(2), opacity: 0.85 }
+  hint: { marginBottom: theme.spacing(2), opacity: 0.85 },
+  testBox: {
+    marginTop: theme.spacing(1),
+    padding: theme.spacing(1.5),
+    background: theme.palette.type === "dark" ? "#333" : "#F1F5F9",
+    borderRadius: 8
+  }
 }));
 
 const empty = {
@@ -53,6 +60,9 @@ const IspConnectors = () => {
   const [form, setForm] = useState(empty);
   const [open, setOpen] = useState(false);
   const [confirmId, setConfirmId] = useState(null);
+  const [testResult, setTestResult] = useState(null);
+  const [testing, setTesting] = useState(false);
+  const [testCpf, setTestCpf] = useState("00000000000");
 
   const load = async () => {
     try {
@@ -98,15 +108,21 @@ const IspConnectors = () => {
   };
 
   const test = async row => {
+    setTesting(true);
+    setTestResult(null);
     try {
       const { data } = await api.post("/isp-connectors/test", {
         connectorId: row.id,
         action: "lookupClient",
-        variables: { cpf: "00000000000", contactName: "Teste" }
+        variables: { cpf: testCpf, contactName: "Teste conexão" }
       });
-      toast.info(data.message || JSON.stringify(data));
+      setTestResult({ name: row.name, ...data });
+      if (data.ok) toast.success(data.message || "Conexão OK");
+      else toast.error(data.message || "Falha no teste");
     } catch (err) {
       toastError(err);
+    } finally {
+      setTesting(false);
     }
   };
 
@@ -149,53 +165,92 @@ const IspConnectors = () => {
       </MainHeader>
 
       <Typography className={classes.hint} variant="body2">
-        Sem URL/token o FlowEngine usa modo demo (ideal para testar templates). Providers: ixc, sgp, hubsoft, generic.
+        Em produção o mock demo fica bloqueado — configure base URL e token (IXC, SGP, Hubsoft ou generic).
+        Use o teste de conexão antes de vincular ao fluxo.
       </Typography>
 
+      <TextField
+        label="CPF para teste"
+        size="small"
+        variant="outlined"
+        value={testCpf}
+        onChange={e => setTestCpf(e.target.value)}
+        style={{ marginBottom: 12, maxWidth: 220 }}
+      />
+
+      {testResult && (
+        <div className={classes.testBox}>
+          <Typography variant="subtitle2">
+            Resultado — {testResult.name}: {testResult.ok ? "OK" : "Falha"}
+          </Typography>
+          <Typography variant="body2">{testResult.message}</Typography>
+        </div>
+      )}
+
       <Paper className={classes.mainPaper} variant="outlined">
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Nome</TableCell>
-              <TableCell>Provider</TableCell>
-              <TableCell>Base URL</TableCell>
-              <TableCell align="center">Ações</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {items.map(row => (
-              <TableRow key={row.id}>
-                <TableCell>{row.name}</TableCell>
-                <TableCell>{row.provider}</TableCell>
-                <TableCell>{row.baseUrl || "(demo)"}</TableCell>
-                <TableCell align="center">
-                  <IconButton size="small" onClick={() => test(row)} title="Testar">
-                    <FlashOn />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={() => {
-                      setForm({
-                        id: row.id,
-                        name: row.name,
-                        provider: row.provider,
-                        baseUrl: row.baseUrl || "",
-                        token: row.token || "",
-                        config: row.config || "{}"
-                      });
-                      setOpen(true);
-                    }}
-                  >
-                    <Edit />
-                  </IconButton>
-                  <IconButton size="small" onClick={() => setConfirmId(row.id)}>
-                    <DeleteOutline />
-                  </IconButton>
-                </TableCell>
+        {items.length === 0 ? (
+          <EmptyState
+            title="Nenhum conector ERP"
+            description="Cadastre IXC, SGP ou Hubsoft para emitir boletos e consultar clientes reais no chatbot."
+            ctaLabel="Novo conector"
+            onCta={() => {
+              setForm(empty);
+              setOpen(true);
+            }}
+          />
+        ) : (
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Nome</TableCell>
+                <TableCell>Provider</TableCell>
+                <TableCell>Base URL</TableCell>
+                <TableCell align="center">Ações</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHead>
+            <TableBody>
+              {items.map(row => (
+                <TableRow key={row.id}>
+                  <TableCell>{row.name}</TableCell>
+                  <TableCell>{row.provider}</TableCell>
+                  <TableCell>{row.baseUrl || "(sem URL)"}</TableCell>
+                  <TableCell align="center">
+                    <IconButton
+                      size="small"
+                      onClick={() => test(row)}
+                      title="Testar conexão"
+                      disabled={testing}
+                    >
+                      <FlashOn />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={() => {
+                        setForm({
+                          id: row.id,
+                          name: row.name,
+                          provider: row.provider,
+                          baseUrl: row.baseUrl || "",
+                          token: row.token || "",
+                          config:
+                            typeof row.config === "string"
+                              ? row.config
+                              : JSON.stringify(row.config || {}, null, 2)
+                        });
+                        setOpen(true);
+                      }}
+                    >
+                      <Edit />
+                    </IconButton>
+                    <IconButton size="small" onClick={() => setConfirmId(row.id)}>
+                      <DeleteOutline />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </Paper>
 
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
@@ -230,6 +285,7 @@ const IspConnectors = () => {
             variant="outlined"
             value={form.baseUrl}
             onChange={e => setForm({ ...form, baseUrl: e.target.value })}
+            helperText="Obrigatório em produção"
           />
           <TextField
             label="Token"

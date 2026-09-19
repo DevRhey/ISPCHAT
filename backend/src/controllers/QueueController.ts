@@ -116,7 +116,7 @@ export const update = async (
 ): Promise<Response> => {
   const { queueId } = req.params;
   const { companyId } = req.user;
-  const { name, color, greetingMessage, outOfHoursMessage, schedules, orderQueue, integrationId, promptId } =
+  const { name, color, greetingMessage, outOfHoursMessage, schedules, orderQueue, integrationId, promptId, flowId } =
     req.body;
   const queue = await UpdateQueueService(queueId, {
     name,
@@ -126,7 +126,8 @@ export const update = async (
     schedules,
     orderQueue: orderQueue === "" ? null : orderQueue,
     integrationId: integrationId === "" ? null : integrationId,
-    promptId: promptId === "" ? null : promptId
+    promptId: promptId === "" ? null : promptId,
+    flowId: flowId === "" || flowId === undefined ? null : flowId
   }, companyId);
 
   const io = getIO();

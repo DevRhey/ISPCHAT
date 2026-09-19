@@ -40,7 +40,6 @@ import {
   AddCircleOutline,
   SettingsBackupRestore,
   Phone,
-  AccountCircle,
   Update,
   Brightness4,
   Brightness7
@@ -61,6 +60,7 @@ import toastError from "../../errors/toastError";
 import formatSerializedId from '../../utils/formatSerializedId';
 import { AuthContext } from "../../context/Auth/AuthContext";
 import { Can } from "../../components/Can";
+import EmptyState from "../../components/EmptyState";
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -653,15 +653,12 @@ const Connections = () => {
                 ))}
               </Grid>
             ) : (
-              <Box className={classes.emptyState}>
-                <AccountCircle style={{ fontSize: 60, color: theme.palette.text.disabled }} />
-                <Typography variant="h6" gutterBottom>
-                  Nenhuma conexão encontrada
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Clique no botão "Adicionar Conexão" para começar
-                </Typography>
-              </Box>
+              <EmptyState
+                title="Nenhuma conexão encontrada"
+                description="Conecte seu WhatsApp para começar a receber e responder atendimentos."
+                ctaLabel="Nova conexão"
+                onCta={handleOpenWhatsAppModal}
+              />
             )}
           </>
         )}

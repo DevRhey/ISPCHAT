@@ -12,6 +12,7 @@ import PlansManager from "../../components/PlansManager";
 import HelpsManager from "../../components/HelpsManager";
 import Options from "../../components/Settings/Options";
 import Uploader from "../../components/Settings/Uploader";
+import Whitelabel from "../../components/Whitelabel";
 import NewCompaniesManager from "../../pages/Companies";
 
 import { i18n } from "../../translate/i18n.js";
@@ -167,6 +168,7 @@ const SettingsCustom = () => {
           className={classes.tab}
         >
           <Tab label="Opções" value={"options"} />
+          <Tab label="Marca / White-label" value={"whitelabel"} />
           {schedulesEnabled && <Tab label="Horários" value={"schedules"} />}
 		  {isSuper() ? <Tab label="Logo" value={"uploader"} /> : null}
           {isSuper() ? <Tab label="Empresas" value={"companies"} /> : null}
@@ -175,6 +177,13 @@ const SettingsCustom = () => {
           {isSuper() ? <Tab label="Ajuda" value={"helps"} /> : null}
         </Tabs>
         <Paper className={classes.paper} elevation={0}>
+          <TabPanel
+            className={classes.container}
+            value={tab}
+            name={"whitelabel"}
+          >
+            <Whitelabel />
+          </TabPanel>
           <TabPanel
             className={classes.container}
             value={tab}

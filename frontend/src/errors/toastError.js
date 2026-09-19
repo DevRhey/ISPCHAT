@@ -1,84 +1,53 @@
 import { toast } from "react-toastify";
 import { i18n } from "../translate/i18n";
-import { isString } from 'lodash';
+import { isString } from "lodash";
 
-const toastError = err => {
-    console.log(err.response);
-    
-    const errorCode = err.response?.status
-    const errorMsg = err.response?.data?.error;
+const toastOpts = (toastId) => ({
+  toastId,
+  autoClose: 4000,
+  hideProgressBar: false,
+  closeOnClick: true,
+  pauseOnHover: true,
+  draggable: true,
+  theme: "light"
+});
 
-    if(errorCode === 500) {
-        console.error(`Error: ${i18n.t(`backendErrors.${errorMsg}`)}`);
-        return
+const toastError = (err) => {
+  const errorCode = err?.response?.status;
+  const errorMsg = err?.response?.data?.error;
+  const networkOffline = typeof navigator !== "undefined" && !navigator.onLine;
+
+  if (networkOffline || err?.message === "Network Error") {
+    toast.error("Sem conexão com o servidor. Verifique sua internet.", toastOpts("offline"));
+    return;
+  }
+
+  if (errorCode === 500) {
+    const msg =
+      (errorMsg && i18n.exists(`backendErrors.${errorMsg}`)
+        ? i18n.t(`backendErrors.${errorMsg}`)
+        : errorMsg) ||
+      "Erro interno do servidor. Tente novamente ou contate o suporte.";
+    toast.error(msg, toastOpts(errorMsg || "server-500"));
+    console.error("HTTP 500:", errorMsg || err);
+    return;
+  }
+
+  if (errorMsg) {
+    if (i18n.exists(`backendErrors.${errorMsg}`)) {
+      toast.error(i18n.t(`backendErrors.${errorMsg}`), toastOpts(errorMsg));
+      return;
     }
+    toast.error(errorMsg, toastOpts(errorMsg));
+    return;
+  }
 
-    if (errorMsg) {
-        if (i18n.exists(`backendErrors.${errorMsg}`)) {
-            console.error(`Error: ${i18n.t(`backendErrors.${errorMsg}`)}`);
-            
-            toast.error(i18n.t(`backendErrors.${errorMsg}`), {
-                toastId: errorMsg,
-                autoClose: 2000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: true,
-                progress: undefined,
-                theme: "light",
-            });
-            
-            return;
-        } else {
-            console.error(`Error: ${errorMsg}`);
-            // Optionally log the error to an external service here
-            
-            toast.error(errorMsg, {
-                toastId: errorMsg,
-                autoClose: 2000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: true,
-                progress: undefined,
-                theme: "light",
-            });
-            
-            return;
-        }
-    } if (isString(err)) {
-        console.error(`Error: ${err}`);
-        // Optionally log the error to an external service here
-        
-        toast.error(err, {
-                toastId: errorMsg,
-                autoClose: 2000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: true,
-                progress: undefined,
-                theme: "light",
-            });
-        
-        return;
-    } else {
-        console.error("An error occurred!");
-        // Optionally log the error to an external service here
-        
-        toast.error("An error occurred!", {
-            toastId: "An error occurred!",
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-        });
-        
-        return;
-    }
+  if (isString(err)) {
+    toast.error(err, toastOpts(err));
+    return;
+  }
+
+  toast.error("Ocorreu um erro inesperado.", toastOpts("generic-error"));
 };
 
 export default toastError;

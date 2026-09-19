@@ -54,17 +54,39 @@ export const update = async (
 };
 
 
+const PUBLIC_SETTING_KEYS = new Set([
+  "appName",
+  "primaryColorLight",
+  "primaryColorDark",
+  "appLogoLight",
+  "appLogoDark",
+  "appLogoFavicon",
+  "companyName"
+]);
+
 export const show = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-
-  //const { companyId } = req.user;
-  const companyId = 1;
   const { settingKey } = req.params;
-  
 
-  const retornoData = await ShowSettingsService({ settingKey, companyId });
+  // Settings públicas (white-label na tela de login) — company 1 = SaaS host
+  if (PUBLIC_SETTING_KEYS.has(settingKey)) {
+    const retornoData = await ShowSettingsService({
+      settingKey,
+      companyId: 1
+    });
+    return res.status(200).json(retornoData);
+  }
+
+  if (!req.user?.companyId) {
+    throw new AppError("ERR_SESSION_EXPIRED", 401);
+  }
+
+  const retornoData = await ShowSettingsService({
+    settingKey,
+    companyId: req.user.companyId
+  });
 
   return res.status(200).json(retornoData);
 };

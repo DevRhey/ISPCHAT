@@ -16,6 +16,7 @@ import Flow from "./Flow";
 
 export type FlowNodeType =
   | "start"
+  | "settings"
   | "message"
   | "menu"
   | "input"

@@ -1,5 +1,35 @@
 # Ambiente de desenvolvimento (ISPCHAT / Whaticket)
 
+## Subir tudo (recomendado no Windows)
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/dev-up.ps1
+# opcional — reinicia se cair:
+powershell -ExecutionPolicy Bypass -File scripts/dev-watchdog.ps1
+```
+
+Health: `http://localhost:8080/health`
+
+## Cloudflare Quick Tunnel (público)
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/cloudflare-keep.ps1
+```
+
+- Mantém **2 tunnels** (FE `:3000` + API `:8080`) com protocolo `http2`
+- Se um cair, **recria** e grava as URLs novas em `scripts/ISPCHAT_PUBLIC.txt`
+- Quando a URL da API muda, **reinicia o CRA** com `REACT_APP_BACKEND_URL` certo (sem isso o link HTTPS “quebra” ao falar com `localhost`)
+
+Abrir sempre o link em `scripts/ISPCHAT_PUBLIC.txt` (Quick Tunnel muda de hostname ao reiniciar).
+
+## Por que “caía toda hora”
+
+1. Backend dava `process.exit(1)` em **qualquer** `unhandledRejection` (Baileys/Redis).
+2. Frontend apontado para **Cloudflare Quick Tunnel** (DNS timeout periódico).
+3. CRA com ESLint no hot-reload + pouca RAM livre (~1.5GB no webpack).
+
+Mitigações: não sair em rejection, `/health` + healthcheck Docker, `.env` com `DISABLE_ESLINT_PLUGIN` + API local, scripts de up/watchdog.
+
 ## Stack recomendada (Windows + Docker Desktop)
 
 | Serviço | Como sobe | Porta host |

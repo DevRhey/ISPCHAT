@@ -10,38 +10,56 @@ import cron from "node-cron";
 
 
 const server = app.listen(process.env.PORT, async () => {
-  const companies = await Company.findAll();
-  const allPromises: any[] = [];
-  companies.map(async c => {
-  
-  	if(c.status === true){  
-    	const promise = StartAllWhatsAppsSessions(c.id);
-    	allPromises.push(promise);
-    }else{
-    	logger.info(`Empresa INATIVA: ${c.id} | ${c.name}`);
+  try {
+    const companies = await Company.findAll();
+    const allPromises: Promise<unknown>[] = [];
+    for (const c of companies) {
+      if (c.status === true) {
+        allPromises.push(
+          StartAllWhatsAppsSessions(c.id).catch(err => {
+            logger.error(
+              `Falha ao iniciar sessões WhatsApp da empresa ${c.id}: ${err?.message || err}`
+            );
+          })
+        );
+      } else {
+        logger.info(`Empresa INATIVA: ${c.id} | ${c.name}`);
+      }
     }
-  
-  });
 
-  Promise.all(allPromises).then(() => {
-    startQueueProcess();
-  });
+    Promise.all(allPromises)
+      .then(() => startQueueProcess())
+      .catch(err =>
+        logger.error(`startQueueProcess/sessions: ${err?.message || err}`)
+      );
+  } catch (err: any) {
+    logger.error(`Bootstrap companies/sessions: ${err?.message || err}`);
+  }
   logger.info(`Server started on port: ${process.env.PORT}`);
 });
 
+// Baileys / Redis / filas geram rejections transitórias. Sair do processo
+// aqui derruba a API "toda hora". Logamos e seguimos; o Docker restart
+// cobre só falhas fatais reais (OOM / segfault / SIGTERM).
 process.on("uncaughtException", err => {
-  console.error(`${new Date().toUTCString()} uncaughtException:`, err.message);
-  console.error(err.stack);
-  process.exit(1);
+  logger.error(
+    `${new Date().toUTCString()} uncaughtException: ${err?.message || err}`
+  );
+  if (err?.stack) logger.error(err.stack);
 });
 
 process.on("unhandledRejection", (reason, p) => {
-  console.error(
-    `${new Date().toUTCString()} unhandledRejection:`,
-    reason,
-    p
+  const msg =
+    reason instanceof Error
+      ? reason.message
+      : typeof reason === "string"
+      ? reason
+      : JSON.stringify(reason);
+  logger.error(
+    `${new Date().toUTCString()} unhandledRejection: ${msg}`
   );
-  process.exit(1);
+  if (reason instanceof Error && reason.stack) logger.error(reason.stack);
+  else logger.error(`Promise: ${String(p)}`);
 });
 
 

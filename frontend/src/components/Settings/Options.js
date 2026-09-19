@@ -159,6 +159,7 @@ export default function Options(props) {
   const [loadingSendGreetingMessageOneQueues, setLoadingSendGreetingMessageOneQueues] = useState(false);
 
   const { update } = useSettings();
+  const [settingsLayer, setSettingsLayer] = useState("essential");
 
   useEffect(() => {
     if (Array.isArray(settings) && settings.length) {
@@ -494,6 +495,21 @@ export default function Options(props) {
   }
   return (
     <>
+      <Tabs
+        value={settingsLayer}
+        onChange={(_, v) => setSettingsLayer(v)}
+        indicatorColor="primary"
+        textColor="primary"
+        style={{ marginBottom: 16 }}
+      >
+        <Tab value="essential" label="Essencial" />
+        <Tab value="advanced" label="Avançado" />
+      </Tabs>
+      {settingsLayer === "essential" && (
+        <Typography variant="body2" style={{ marginBottom: 16, color: "#64748B" }}>
+          Configurações do dia a dia do atendimento. Use Avançado para integrações ERP, Asaas e opções de super-admin.
+        </Typography>
+      )}
       <Grid spacing={3} container>
         <Grid xs={12} sm={12} md={12} item>
           <FormControl className={classes.selectContainer}>
@@ -595,6 +611,8 @@ export default function Options(props) {
             </FormHelperText>
           </FormControl>
         </Grid>
+        {settingsLayer === "advanced" && (
+          <>
 		{/* ENVIAR SAUDAÇÃO AO ACEITAR O TICKET */}
         <Grid xs={12} sm={12} md={12} item>
           <FormControl className={classes.selectContainer}>
@@ -696,100 +714,95 @@ export default function Options(props) {
             </FormHelperText>
           </FormControl>
         </Grid>
-		
-      </Grid>
-	  
-		<OnlyForSuperUser
-				user={currentUser}
-				yes={() => (
-				  <>
-					<Grid spacing={3} container>
-					  <Tabs
-						indicatorColor='primary'
-						textColor='primary'
-						scrollButtons='on'
-						variant='scrollable'
-						className={classes.tab}
-						style={{
-						  marginBottom: 20,
-						  marginTop: 20,
-						}}
-					  >
-						<Tab label='Configurações Globais' />
-					  </Tabs>
-					</Grid>
-
-
-            <Grid xs={12} sm={12} md={12} item>
-                <FormControl className={classes.selectContainer}>
-                  <InputLabel id='allowregister-label'>
-                    Registro (Inscrição) Permitida?
-                  </InputLabel>
-                  <Select
-                    labelId='allowregister-label'
-                    value={allowregister}
-                    onChange={async (e) => {
-                      handleallowregister(e.target.value);
-                    }}
-                  >
-                    <MenuItem value={'disabled'}>Não</MenuItem>
-                    <MenuItem value={'enabled'}>Sim</MenuItem>
-                  </Select>
-                  <FormHelperText>
-                    {loadingallowregister && 'Atualizando...'}
-                  </FormHelperText>
-                </FormControl>
-              </Grid>
-
-				  <Grid xs={12} sm={12} md={12} item>
-                <FormControl className={classes.selectContainer}>
-                  <InputLabel id='viewregister-label'>
-                    Registro (Inscrição) Visível?
-                  </InputLabel>
-                  <Select
-                    labelId='viewregister-label'
-                    value={viewregister}
-                    onChange={async (e) => {
-                      handleviewregister(e.target.value);
-                    }}
-                  >
-                    <MenuItem value={'disabled'}>Não</MenuItem>
-                    <MenuItem value={'enabled'}>Sim</MenuItem>
-                  </Select>
-                  <FormHelperText>
-                    {loadingviewregister && 'Atualizando...'}
-                  </FormHelperText>
-                </FormControl>
-              </Grid>
-			  
-			                <Grid xs={12} sm={12} md={12} item>
-                <FormControl className={classes.selectContainer}>
-                  <InputLabel id='trial-label'>Tempo de Trial?</InputLabel>
-                  <Select
-                    labelId='trial-label'
-                    value={trial}
-                    onChange={async (e) => {
-                      handletrial(e.target.value);
-                    }}
-                  >
-                    <MenuItem value={'1'}>1</MenuItem>
-                    <MenuItem value={'2'}>2</MenuItem>
-                    <MenuItem value={'3'}>3</MenuItem>
-                    <MenuItem value={'4'}>4</MenuItem>
-                    <MenuItem value={'5'}>5</MenuItem>
-                    <MenuItem value={'6'}>6</MenuItem>
-                    <MenuItem value={'7'}>7</MenuItem>
-                  </Select>
-                  <FormHelperText>
-                    {loadingtrial && 'Atualizando...'}
-                  </FormHelperText>
-                </FormControl>
-              </Grid>
-
-      </>
+          </>
         )}
-      />
-	        <Grid spacing={3} container>
+      </Grid>
+
+      {settingsLayer === "advanced" && (
+        <>
+          <OnlyForSuperUser
+            user={currentUser}
+            yes={() => (
+              <Grid spacing={3} container>
+                <Grid item xs={12}>
+                  <Tabs
+                    indicatorColor="primary"
+                    textColor="primary"
+                    scrollButtons="on"
+                    variant="scrollable"
+                    className={classes.tab}
+                    style={{ marginBottom: 20, marginTop: 20 }}
+                  >
+                    <Tab label="Configurações Globais" />
+                  </Tabs>
+                </Grid>
+                <Grid xs={12} sm={12} md={12} item>
+                  <FormControl className={classes.selectContainer}>
+                    <InputLabel id="allowregister-label">
+                      Registro (Inscrição) Permitida?
+                    </InputLabel>
+                    <Select
+                      labelId="allowregister-label"
+                      value={allowregister}
+                      onChange={async (e) => {
+                        handleallowregister(e.target.value);
+                      }}
+                    >
+                      <MenuItem value={"disabled"}>Não</MenuItem>
+                      <MenuItem value={"enabled"}>Sim</MenuItem>
+                    </Select>
+                    <FormHelperText>
+                      {loadingallowregister && "Atualizando..."}
+                    </FormHelperText>
+                  </FormControl>
+                </Grid>
+                <Grid xs={12} sm={12} md={12} item>
+                  <FormControl className={classes.selectContainer}>
+                    <InputLabel id="viewregister-label">
+                      Registro (Inscrição) Visível?
+                    </InputLabel>
+                    <Select
+                      labelId="viewregister-label"
+                      value={viewregister}
+                      onChange={async (e) => {
+                        handleviewregister(e.target.value);
+                      }}
+                    >
+                      <MenuItem value={"disabled"}>Não</MenuItem>
+                      <MenuItem value={"enabled"}>Sim</MenuItem>
+                    </Select>
+                    <FormHelperText>
+                      {loadingviewregister && "Atualizando..."}
+                    </FormHelperText>
+                  </FormControl>
+                </Grid>
+                <Grid xs={12} sm={12} md={12} item>
+                  <FormControl className={classes.selectContainer}>
+                    <InputLabel id="trial-label">Tempo de Trial?</InputLabel>
+                    <Select
+                      labelId="trial-label"
+                      value={trial}
+                      onChange={async (e) => {
+                        handletrial(e.target.value);
+                      }}
+                    >
+                      <MenuItem value={"1"}>1</MenuItem>
+                      <MenuItem value={"2"}>2</MenuItem>
+                      <MenuItem value={"3"}>3</MenuItem>
+                      <MenuItem value={"4"}>4</MenuItem>
+                      <MenuItem value={"5"}>5</MenuItem>
+                      <MenuItem value={"6"}>6</MenuItem>
+                      <MenuItem value={"7"}>7</MenuItem>
+                    </Select>
+                    <FormHelperText>
+                      {loadingtrial && "Atualizando..."}
+                    </FormHelperText>
+                  </FormControl>
+                </Grid>
+              </Grid>
+            )}
+          />
+          <Grid spacing={3} container>
         <Tabs
           indicatorColor="primary"
           textColor="primary"
@@ -966,6 +979,8 @@ export default function Options(props) {
           </FormControl>
         </Grid>
       </Grid>
+        </>
+      )}
     </>
   );
 }
