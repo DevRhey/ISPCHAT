@@ -8,6 +8,7 @@ import {
 import isAuth from "../middleware/isAuth";
 import AppError from "../errors/AppError";
 import auditLog from "../middleware/auditLog";
+import { logger } from "../utils/logger";
 
 const whatsappCloudRoutes = Router();
 
@@ -19,7 +20,7 @@ whatsappCloudRoutes.get("/whatsapp-cloud/status", isAuth, (_req, res) => {
     configured: !!cfg,
     provider: enabled ? "meta-cloud" : "baileys",
     disclaimer:
-      "Canal oficial Meta Cloud API disponível como adapter. Baileys permanece padrão até migração completa."
+      "Canal oficial Meta Cloud API disponível como adapter. Baileys permanece padrão até migração completa do listener de tickets."
   });
 });
 
@@ -52,7 +53,39 @@ whatsappCloudRoutes.get("/whatsapp-cloud/webhook", (req, res) => {
 });
 
 whatsappCloudRoutes.post("/whatsapp-cloud/webhook", (req, res) => {
-  // Recebe eventos Meta — processar em worker futuro
+  try {
+    if (!isCloudApiEnabled()) {
+      return res.sendStatus(200);
+    }
+    const body = req.body || {};
+    const entries = body.entry || [];
+    for (const entry of entries) {
+      const changes = entry.changes || [];
+      for (const change of changes) {
+        const value = change.value || {};
+        const messages = value.messages || [];
+        for (const msg of messages) {
+          logger.info(
+            {
+              from: msg.from,
+              type: msg.type,
+              id: msg.id,
+              text:
+                msg.text && msg.text.body
+                  ? String(msg.text.body).slice(0, 120)
+                  : undefined
+            },
+            "whatsapp-cloud inbound ack (ticket pipeline ainda via Baileys por padrão)"
+          );
+        }
+      }
+    }
+  } catch (err) {
+    logger.error(
+      { err: err instanceof Error ? err.message : String(err) },
+      "whatsapp-cloud webhook parse error"
+    );
+  }
   return res.sendStatus(200);
 });
 

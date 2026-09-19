@@ -9,8 +9,7 @@ import {
   Stepper,
   Step,
   StepLabel,
-  Box,
-  CircularProgress
+  Box
 } from "@material-ui/core";
 import { useHistory } from "react-router-dom";
 import api from "../../services/api";
@@ -22,15 +21,15 @@ const steps = [
     key: "wa",
     label: "WhatsApp",
     title: "Conecte seu WhatsApp",
-    body: "Escaneie o QR Code para começar a atender clientes pelo canal oficial da sua operação.",
+    body: "Escaneie o QR Code para começar a atender clientes pelo canal da operação.",
     cta: "Abrir Conexões",
     path: "/connections"
   },
   {
     key: "queue",
     label: "Fila",
-    title: "Crie sua primeira fila",
-    body: "Filas organizam o atendimento (Financeiro, Técnico, Comercial). Sem fila, o chatbot não sabe para onde enviar.",
+    title: "Crie suas filas",
+    body: "Crie filas Financeiro, Técnico, Comercial e NOC. Elas são usadas no handoff humano do bot.",
     cta: "Abrir Filas",
     path: "/queues"
   },
@@ -38,9 +37,33 @@ const steps = [
     key: "flow",
     label: "Fluxo ISP",
     title: "Ative o fluxo de atendimento ISP",
-    body: "Use o fluxo master (boleto, ONU, visita, cobertura) ou crie o seu no editor gráfico.",
+    body: "Use o fluxo master (boleto, ONU, visita, cobertura) ou o editor gráfico. Não misture FlowEngine e LangGraph na mesma fila.",
     cta: "Abrir Fluxos",
     path: "/flows"
+  },
+  {
+    key: "langgraph",
+    label: "IA ISP",
+    title: "Ligue o ISPCHAT LangGraph",
+    body: "Em Integrações, crie tipo ISPCHAT LangGraph e vincule na fila principal se for usar o motor de intenções.",
+    cta: "Abrir Integrações",
+    path: "/queue-integration"
+  },
+  {
+    key: "connector",
+    label: "ERP",
+    title: "Conector IXC / SGP / HubSoft",
+    body: "Cadastre o ERP em Conectores ISP. Em produção mantenha ALLOW_ISP_DEMO=false para nunca enviar boleto fictício.",
+    cta: "Abrir Conectores",
+    path: "/isp-connectors"
+  },
+  {
+    key: "handoff",
+    label: "Handoff",
+    title: "Mapeie filas humanas",
+    body: "Em Configurações, salve a chave ispTransferQueues com JSON: {\"financeiro\":ID,\"suporte\":ID,\"comercial\":ID,\"noc\":ID}.",
+    cta: "Abrir Configurações",
+    path: "/settings"
   }
 ];
 
@@ -70,13 +93,14 @@ const OnboardingWizard = ({ openForce = false }) => {
           ? flows.data.flows.length > 0
           : false;
 
-        if (hasWa && hasQueue && hasFlow) {
+        if (hasWa && hasQueue && hasFlow && !openForce) {
           localStorage.setItem(STORAGE_KEY, "1");
           setOpen(false);
         } else {
           if (!hasWa) setActiveStep(0);
           else if (!hasQueue) setActiveStep(1);
-          else setActiveStep(2);
+          else if (!hasFlow) setActiveStep(2);
+          else setActiveStep(3);
           setOpen(true);
         }
       } catch {
