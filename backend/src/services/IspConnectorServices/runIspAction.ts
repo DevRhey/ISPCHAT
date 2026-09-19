@@ -68,6 +68,76 @@ const resolvePath = (
   return actions[action] || actions.custom || "/";
 };
 
+
+/** Mensagem curta pt-BR amigável ao WhatsApp a partir do payload do ERP (sem tokens). */
+const formatErpMessage = (
+  action: string,
+  data: Record<string, any>,
+  provider: string
+): string => {
+  const d = data || {};
+  const pick = (...keys: string[]) => {
+    for (const k of keys) {
+      const v = d[k] ?? d?.data?.[k] ?? d?.cliente?.[k] ?? d?.registros?.[0]?.[k];
+      if (v !== undefined && v !== null && String(v).trim() !== "") return String(v);
+    }
+    return "";
+  };
+
+  if (action === "lookupClient") {
+    const name = pick("name", "nome", "razao", "razao_social");
+    const contract = pick("contract", "contrato", "contrato_id", "id");
+    const status = pick("status", "situacao", "ativo");
+    const parts = ["✅ Cliente localizado no ERP (" + provider + ")."];
+    if (name) parts.push(`Nome: *${name}*`);
+    if (contract) parts.push(`Contrato: *${contract}*`);
+    if (status) parts.push(`Status: *${status}*`);
+    return parts.join("\n");
+  }
+
+  if (action === "getInvoice") {
+    const amount = pick("amount", "valor", "valor_total", "total");
+    const due = pick("dueDate", "vencimento", "data_vencimento");
+    const pix = pick("pixUrl", "pix", "qrcode_pix", "linha_pix");
+    const boleto = pick("boletoUrl", "boleto", "link_boleto", "linha_digitavel");
+    const parts = [`🧾 Fatura (${provider}):`];
+    if (amount) parts.push(`Valor: *R$ ${amount}*`);
+    if (due) parts.push(`Vencimento: *${due}*`);
+    if (pix) parts.push(`PIX: ${pix}`);
+    if (boleto) parts.push(`Boleto: ${boleto}`);
+    if (parts.length === 1) parts.push("Consulta OK — detalhes no sistema.");
+    return parts.join("\n");
+  }
+
+  if (action === "checkCoverage") {
+    const covered = d.covered ?? d.cobertura ?? d.viable;
+    const cep = pick("cep", "zip");
+    if (covered === true || covered === "true" || covered === 1) {
+      return `📡 CEP ${cep || ""}: *há cobertura* (${provider}).`.replace("  ", " ");
+    }
+    if (covered === false || covered === "false" || covered === 0) {
+      return `📡 CEP ${cep || ""}: *sem cobertura* no momento (${provider}).`.replace("  ", " ");
+    }
+    return `📡 Consulta de cobertura concluída (${provider}).`;
+  }
+
+  if (action === "openTicket") {
+    const osId = pick("osId", "os", "id", "protocolo", "ticket_id");
+    return osId
+      ? `🛠️ OS aberta: *${osId}* (${provider}).`
+      : `🛠️ OS registrada no ERP (${provider}).`;
+  }
+
+  // generic: short summary, never dump huge JSON
+  const keys = Object.keys(d).filter(k => !/token|password|senha|authorization|secret/i.test(k));
+  const preview = keys.slice(0, 4).map(k => {
+    const v = d[k];
+    const s = typeof v === "object" ? "[…]" : String(v).slice(0, 80);
+    return `• ${k}: ${s}`;
+  });
+  return [`Resposta ERP (${provider}):`, ...preview].join("\n") || `OK (${provider}).`;
+};
+
 /**
  * Executa ação no ERP do provedor.
  * Sem credenciais reais, retorna dados mock para testes de fluxo.
@@ -103,7 +173,7 @@ const runIspAction = async (
           status: "ativo"
         },
         message: cpf
-          ? `Cliente localizado (modo demo). Contrato CTR-${cpf.slice(-4)}.`
+          ? `Cliente localizado *(demo)*. Contrato CTR-${cpf.slice(-4)}.`
           : "Informe o CPF para localizar o cliente."
       };
     }
@@ -116,7 +186,7 @@ const runIspAction = async (
           pixUrl: `https://exemplo.com/pix/${cpf || "demo"}`,
           boletoUrl: `https://exemplo.com/boleto/${cpf || "demo"}`
         },
-        message: `2ª via (demo):\nPIX: https://exemplo.com/pix/${cpf || "demo"}\nBoleto: https://exemplo.com/boleto/${cpf || "demo"}`
+        message: `2ª via *(demo)*:\nPIX: https://exemplo.com/pix/${cpf || "demo"}\nBoleto: https://exemplo.com/boleto/${cpf || "demo"}`
       };
     }
     if (action === "checkCoverage") {
@@ -125,7 +195,7 @@ const runIspAction = async (
         ok: cep.length >= 8,
         data: { covered: cep.length >= 8, cep },
         message: cep.length >= 8
-          ? `CEP ${cep}: há cobertura na região (demo).`
+          ? `CEP ${cep}: há cobertura na região *(demo)*.`
           : "Envie um CEP válido com 8 dígitos."
       };
     }
@@ -133,7 +203,7 @@ const runIspAction = async (
       return {
         ok: true,
         data: { osId: `OS-${Date.now()}` },
-        message: `OS aberta (demo): OS-${Date.now()}`
+        message: `OS aberta *(demo)*: OS-${Date.now()}`
       };
     }
     return {
@@ -174,10 +244,14 @@ const runIspAction = async (
       timeout: 25000
     });
 
+    const payload = typeof data === "object" && data !== null ? data : { raw: data };
     return {
       ok: true,
-      data: typeof data === "object" ? data : { raw: data },
-      message: typeof data === "string" ? data : JSON.stringify(data).slice(0, 500)
+      data: payload as Record<string, any>,
+      message:
+        typeof data === "string"
+          ? data.slice(0, 500)
+          : formatErpMessage(String(action), payload as Record<string, any>, connector.provider)
     };
   } catch (err: any) {
     logger.error({ err: err?.message }, `IspConnector action ${action} failed`);

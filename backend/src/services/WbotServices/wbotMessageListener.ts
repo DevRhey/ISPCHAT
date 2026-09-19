@@ -2217,6 +2217,8 @@ const handleMessage = async (
       const integrations = await ShowQueueIntegrationService(ticket.integrationId, companyId);
 
       await handleMessageIntegration(msg, wbot, integrations, ticket)
+      // Prevent same tick from also running FlowEngine / chatbot / langgraph below
+      return;
 
     }
 

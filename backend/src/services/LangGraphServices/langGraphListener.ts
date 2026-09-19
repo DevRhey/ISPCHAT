@@ -4,7 +4,8 @@ import QueueIntegrations from "../../models/QueueIntegrations";
 import { getBodyMessage } from "../WbotServices/wbotMessageListener";
 import SendWhatsAppMessage from "../WbotServices/SendWhatsAppMessage";
 import UpdateTicketService from "../TicketServices/UpdateTicketService";
-import { runIspLangGraph } from "./ispGraph";
+import { clearIspThread, runIspLangGraph } from "./ispGraph";
+import { resolveTransferQueueId } from "./resolveTransferQueueId";
 import { logger } from "../../utils/logger";
 
 type Session = any;
@@ -18,6 +19,10 @@ interface PrevState {
   transferQueueHint?: string;
 }
 
+/**
+ * Source of truth across restarts: ticket.flowVariables (not in-process MemorySaver).
+ * parsePrev always feeds `prev` into runIspLangGraph on each invoke.
+ */
 const parsePrev = (ticket: Ticket): PrevState => {
   try {
     const raw = ticket.flowVariables || ticket.typebotSessionId;
@@ -75,16 +80,26 @@ const langGraphListener = async ({
     }
 
     if (state.done && state.transferQueueHint) {
+      const queueId = await resolveTransferQueueId(
+        ticket.companyId,
+        state.transferQueueHint
+      );
+      const ticketData: Record<string, any> = {
+        chatbot: false,
+        useIntegration: false,
+        integrationId: null,
+        status: "pending"
+      };
+      // Only set queueId when we have a confident match — never invent a wrong queue
+      if (queueId) {
+        ticketData.queueId = queueId;
+      }
       await UpdateTicketService({
-        ticketData: {
-          chatbot: false,
-          useIntegration: false,
-          integrationId: null,
-          status: "pending"
-        } as any,
+        ticketData: ticketData as any,
         ticketId: ticket.id,
         companyId: ticket.companyId
       });
+      clearIspThread(threadId);
     } else if (state.done) {
       await UpdateTicketService({
         ticketData: {
@@ -96,6 +111,7 @@ const langGraphListener = async ({
         ticketId: ticket.id,
         companyId: ticket.companyId
       });
+      clearIspThread(threadId);
     }
   } catch (err) {
     logger.error({ err }, "LangGraph ISPCHAT error");

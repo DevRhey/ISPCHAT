@@ -27,6 +27,11 @@ export const Annotation = Object.assign(annotationField, {
 type NodeFn<S> = (state: S) => Promise<Partial<S>> | Partial<S>;
 type RouterFn<S> = (state: S) => string;
 
+/**
+ * In-process checkpoint only. Durable conversation state must come from
+ * ticket.flowVariables (merged as `input`/`prev` on each invoke). Do not rely
+ * on MemorySaver across process restarts.
+ */
 export class MemorySaver {
   private store = new Map<string, any>();
 
@@ -36,6 +41,10 @@ export class MemorySaver {
 
   set(threadId: string, state: any) {
     this.store.set(threadId, state);
+  }
+
+  delete(threadId: string) {
+    this.store.delete(threadId);
   }
 }
 

@@ -155,14 +155,43 @@ async function nodePix(state: IspGraphState) {
   );
 }
 
-async function nodeNegociacao() {
+async function nodeNegociacao(state: IspGraphState) {
+  let cpf = state.cpf || "";
+  if (state.awaiting === "cpf" || onlyDigits(state.input).length >= 11) {
+    const fromInput = onlyDigits(state.input);
+    if (fromInput.length >= 11) cpf = fromInput;
+  }
+  if (cpf.length < 11) {
+    return reply(
+      [
+        "💬 *Negociação de dívida*",
+        "Podemos oferecer acordo em até 3x sem juros (demo).",
+        "Digite seu *CPF* para simular, ou *13* para falar com o financeiro."
+      ],
+      { awaiting: "cpf", intent: "negociacao" }
+    );
+  }
+
+  const lookup = await runIspAction({
+    companyId: state.companyId,
+    action: "lookupClient",
+    variables: { cpf, contactName: state.contactName }
+  });
+  const suffix = cpf.slice(-4);
   return reply(
     [
-      "💬 *Negociação de dívida*",
-      "Podemos oferecer acordo em até 3x sem juros (demo).",
-      "Digite seu *CPF* para simular, ou *13* para falar com o financeiro."
+      lookup.message,
+      `✅ *Proposta de acordo (demo)* para CPF ***${suffix}*:`,
+      "• Entrada R$ 49,90 + 2x R$ 50,00 sem juros",
+      "• Ou à vista com 20% de desconto",
+      "Digite *13* para concluir com o financeiro, ou *0* para o menu."
     ],
-    { awaiting: "cpf", intent: "negociacao" }
+    {
+      cpf,
+      awaiting: "none",
+      intent: "negociacao",
+      variables: { client: lookup.data, negociacaoDemo: true }
+    }
   );
 }
 
@@ -606,8 +635,18 @@ export interface RunIspGraphInput {
   prev?: Partial<IspGraphState>;
 }
 
+/** Clear in-process checkpoint when handoff/close completes (ticket.flowVariables remains durable). */
+export const clearIspThread = (threadId: string) => {
+  checkpointer.delete(threadId);
+};
+
+/**
+ * Invoke ISP graph. `payload.prev` MUST come from ticket.flowVariables
+ * (source of truth across restarts). MemorySaver is only an in-process cache.
+ */
 export const runIspLangGraph = async (payload: RunIspGraphInput) => {
   const graph = getIspGraph();
+  // Explicit prev fields win over any stale MemorySaver checkpoint for this thread.
   const result = await graph.invoke(
     {
       input: payload.input,

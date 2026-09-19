@@ -50,6 +50,12 @@ export const ISP_INTENTS: IntentDef[] = [
     category: "system"
   },
   {
+    intent: "identify_client",
+    label: "Identificar cliente",
+    keywords: ["cpf", "meu cpf", "identificar", "cadastro", "meu cadastro", "identificar cliente"],
+    category: "account"
+  },
+  {
     intent: "segunda_via",
     label: "2ª via / boleto",
     keywords: ["2 via", "2ª via", "segunda via", "boleto", "fatura", "conta", "pdf boleto"],
