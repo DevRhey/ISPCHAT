@@ -42,6 +42,12 @@ export const show = async (req: Request, res: Response): Promise<Response> => {
 
 export const list = async (req: Request, res: Response): Promise<Response> => {
   const { companyId } = req.user;
+  const User = (await import("../models/User")).default;
+  const requestUser = await User.findByPk(req.user.id);
+  if (requestUser?.super) {
+    const all = await Invoices.findAll({ order: [["id", "ASC"]] });
+    return res.status(200).json(all);
+  }
   const invoice: Invoices[] = await FindAllInvoiceService(companyId);
 
   return res.status(200).json(invoice);

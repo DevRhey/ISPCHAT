@@ -255,6 +255,13 @@ const Login = () => {
                             }}
                         />
                         
+                        <Typography variant="caption" style={{ display: "block", marginBottom: 12, color: "#64748B" }}>
+                            Ao entrar você aceita os{" "}
+                            <Link component={RouterLink} to="/termos">
+                                termos
+                            </Link>
+                            . WhatsApp via Baileys não é API oficial da Meta.
+                        </Typography>
                         <Button
                             type="submit"
                             fullWidth

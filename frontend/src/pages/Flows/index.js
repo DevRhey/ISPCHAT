@@ -40,6 +40,8 @@ import TableRowSkeleton from "../../components/TableRowSkeleton";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import FlowGraphCanvas from "../../components/FlowGraphCanvas";
 import EmptyState from "../../components/EmptyState";
+import ErpRequiredBanner from "../../components/ErpRequiredBanner";
+import OperationLockedBanner from "../../components/OperationLockedBanner";
 import api from "../../services/api";
 import toastError from "../../errors/toastError";
 
@@ -308,6 +310,8 @@ const Flows = () => {
         </MainHeaderButtonsWrapper>
       </MainHeader>
 
+      <ErpRequiredBanner />
+      <OperationLockedBanner />
       <Typography className={classes.hint} variant="body2">
         Use o <strong>editor gráfico</strong> (React Flow / estilo LangGraph) para montar menus,
         gatilhos, ISP actions e transferências. Vincule o fluxo à fila para rodar no WhatsApp.

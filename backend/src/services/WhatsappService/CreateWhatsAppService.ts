@@ -5,6 +5,7 @@ import Whatsapp from "../../models/Whatsapp";
 import Company from "../../models/Company";
 import Plan from "../../models/Plan";
 import AssociateWhatsappQueue from "./AssociateWhatsappQueue";
+import { assertCompanyOperationReleased } from "../../helpers/companyAccess";
 
 interface Request {
   name: string;
@@ -56,6 +57,8 @@ const CreateWhatsAppService = async ({
   expiresTicket = 0,
   expiresInactiveMessage = ""
 }: Request): Promise<Response> => {
+  await assertCompanyOperationReleased(companyId);
+
   const company = await Company.findOne({
     where: {
       id: companyId

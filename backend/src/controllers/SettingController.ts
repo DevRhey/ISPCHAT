@@ -38,6 +38,19 @@ export const update = async (
   const { value } = req.body;
   const { companyId } = req.user;
 
+  const PLATFORM_KEYS = new Set([
+    "allowregister",
+    "viewregister",
+    "trial",
+    "asaas"
+  ]);
+  if (PLATFORM_KEYS.has(key)) {
+    const requestUser = await User.findByPk(req.user.id);
+    if (!requestUser?.super) {
+      throw new AppError("ERR_NO_PERMISSION", 403);
+    }
+  }
+
   const setting = await UpdateSettingService({
     key,
     value,
@@ -61,7 +74,10 @@ const PUBLIC_SETTING_KEYS = new Set([
   "appLogoLight",
   "appLogoDark",
   "appLogoFavicon",
-  "companyName"
+  "companyName",
+  "trial",
+  "allowregister",
+  "viewregister"
 ]);
 
 export const show = async (

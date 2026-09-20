@@ -16,7 +16,14 @@ import ListCompaniesService from "../services/CompanyService/ListCompaniesServic
 import ShowCompanyService from "../services/CompanyService/ShowCompanyService";
 import ShowPlanCompanyService from "../services/CompanyService/ShowPlanCompanyService";
 import UpdateCompanyService from "../services/CompanyService/UpdateCompanyService";
+import ActivateCompanyService from "../services/CompanyService/ActivateCompanyService";
 import UpdateSchedulesService from "../services/CompanyService/UpdateSchedulesService";
+import {
+  assertSameCompany,
+  isPlatformOwner,
+  loadRequestUser
+} from "../helpers/roles";
+import Plan from "../models/Plan";
 
 const publicFolder = path.resolve(__dirname, "..", "..", "public");
 
@@ -39,11 +46,15 @@ type CompanyData = {
   id?: number;
   phone?: string;
   email?: string;
+  password?: string;
   status?: boolean;
   planId?: number;
   campaignsEnabled?: boolean;
   dueDate?: string;
   recurrence?: string;
+  activationState?: string;
+  operationEnabled?: boolean;
+  trialDays?: number;
 };
 
 type SchedulesData = {
@@ -74,13 +85,48 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
     throw new AppError(err.message);
   }
 
-  const company = await CreateCompanyService(newCompany);
+  const isPublicSignup = req.path.includes("/cadastro") || !req.user;
+  if (isPublicSignup && req.body.acceptTerms !== true) {
+    throw new AppError("Aceite a licença de uso para criar a conta", 400);
+  }
+  if (isPublicSignup) {
+    newCompany.status = false;
+    newCompany.dueDate = undefined;
+    newCompany.activationState = "pending";
+    newCompany.operationEnabled = false;
+
+    if (newCompany.planId) {
+      const plan = await Plan.findByPk(newCompany.planId);
+      if (!plan || plan.useInternal !== true) {
+        throw new AppError("Plano inválido para cadastro público", 400);
+      }
+    }
+  }
+  if (!isPublicSignup && req.user) {
+    const requestUser = await loadRequestUser(req.user.id);
+    if (!isPlatformOwner(requestUser)) {
+      throw new AppError("ERR_NO_PERMISSION", 403);
+    }
+  }
+
+  const company = await CreateCompanyService({
+    ...newCompany,
+    status: isPublicSignup ? false : newCompany.status !== false,
+    activationState: isPublicSignup
+      ? "pending"
+      : newCompany.activationState || "active",
+    operationEnabled: isPublicSignup
+      ? false
+      : newCompany.operationEnabled !== false
+  });
 
   return res.status(200).json(company);
 };
 
 export const show = async (req: Request, res: Response): Promise<Response> => {
   const { id } = req.params;
+  const requestUser = await loadRequestUser(req.user.id);
+  assertSameCompany(req.user.companyId, id, requestUser);
 
   const company = await ShowCompanyService(id);
 
@@ -110,8 +156,33 @@ export const update = async (
   }
 
   const { id } = req.params;
+  const requestUser = await loadRequestUser(req.user.id);
+  if (!isPlatformOwner(requestUser)) {
+    throw new AppError("ERR_NO_PERMISSION", 403);
+  }
 
   const company = await UpdateCompanyService({ id, ...companyData });
+
+  return res.status(200).json(company);
+};
+
+export const activate = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const requestUser = await loadRequestUser(req.user.id);
+  if (!isPlatformOwner(requestUser)) {
+    throw new AppError("ERR_NO_PERMISSION", 403);
+  }
+
+  const { id } = req.params;
+  const { planId, trialDays, operationEnabled } = req.body;
+  const company = await ActivateCompanyService({
+    companyId: id,
+    planId,
+    trialDays,
+    operationEnabled
+  });
 
   return res.status(200).json(company);
 };
@@ -122,6 +193,9 @@ export const updateSchedules = async (
 ): Promise<Response> => {
   const { schedules }: SchedulesData = req.body;
   const { id } = req.params;
+
+  const requestUser = await loadRequestUser(req.user.id);
+  assertSameCompany(req.user.companyId, id, requestUser);
 
   const company = await UpdateSchedulesService({
     id,
@@ -168,15 +242,11 @@ export const listPlan = async (req: Request, res: Response): Promise<Response> =
   const { id: requestUserId, profile, companyId } = decoded as TokenPayload;
   const requestUser = await User.findByPk(requestUserId);
 
-  if (requestUser.super === true) {
-    const company = await ShowPlanCompanyService(id);
-    return res.status(200).json(company);
-  } else if (companyId.toString() !== id) {
-    return res.status(400).json({ error: "Você não possui permissão para acessar este recurso!" });
-  } else {
+  if (requestUser.super === true || companyId.toString() === id) {
     const company = await ShowPlanCompanyService(id);
     return res.status(200).json(company);
   }
+  return res.status(403).json({ error: "ERR_NO_PERMISSION" });
 
 };
 

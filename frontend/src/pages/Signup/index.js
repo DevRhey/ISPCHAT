@@ -27,7 +27,9 @@ import {
 	useMediaQuery,
 	Fade,
 	Slide,
-	Badge
+	Badge,
+	FormControlLabel,
+	Checkbox
 } from "@material-ui/core";
 import {
 	LockOutlined,
@@ -326,6 +328,9 @@ const UserSchema = Yup.object().shape({
 	phone: Yup.string()
 		.min(15, "Telefone incompleto")
 		.required("Obrigatório"),
+	acceptTerms: Yup.boolean()
+		.oneOf([true], "Aceite a licença de uso para continuar")
+		.required("Obrigatório"),
 });
 
 const SignUp = () => {
@@ -334,7 +339,7 @@ const SignUp = () => {
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 	const [allowregister, setallowregister] = useState('enabled');
-	const [trial, settrial] = useState('3');
+	const [trial, settrial] = useState('7');
 	const [activeStep, setActiveStep] = useState(0);
 	const [selectedPlan, setSelectedPlan] = useState(null);
 
@@ -382,7 +387,8 @@ const SignUp = () => {
 		email: "",
 		phone: "",
 		password: "",
-		planId: selectedPlan?.id || ""
+		planId: selectedPlan?.id || "",
+		acceptTerms: false
 	};
 
 	const dueDate = moment().add(trial, "day").format();
@@ -430,7 +436,7 @@ const SignUp = () => {
 		handleNext();
 	};
 
-	const steps = ['Selecione seu plano', 'Crie sua conta'];
+	const steps = ['Escolha o plano da sua provedora', 'Crie sua conta'];
 
 	// Identificar o plano mais popular (com maior valor)
 	const popularPlan = plans.length > 0
@@ -451,11 +457,11 @@ const SignUp = () => {
 
 				<div className={classes.hero}>
 					<Typography variant="h3" className={classes.heroTitle} gutterBottom>
-						Transforme sua comunicação com nosso sistema
+						Crie a conta da sua provedora
 					</Typography>
 					<Typography variant="h6" className={classes.heroSubtitle}>
-						Experimente gratuitamente por {trial} dias todas as funcionalidades
-						da nossa plataforma. Sem necessidade de cartão de crédito.
+						Um workspace só para o atendimento da sua ISP. Após o cadastro o operador
+						libera os dias de teste. Licença de uso — sem revenda do ISPCHAT.
 					</Typography>
 				</div>
 
@@ -526,7 +532,7 @@ const SignUp = () => {
 														<div className={classes.pricingCardFeature}>
 															<CheckCircle className={classes.featureIcon} />
 															<Typography variant="body2">
-																<strong>{plan.users}</strong> Usuários
+																<strong>{plan.users}</strong> Atendentes
 															</Typography>
 														</div>
 														<div className={classes.pricingCardFeature}>
@@ -562,7 +568,7 @@ const SignUp = () => {
 														<div className={classes.pricingCardFeature}>
 															<CheckCircle className={classes.featureIcon} />
 															<Typography variant="body2">
-																Open AI (chatGPT) <strong>{plan.useOpenAi ? 'Sim' : 'Não'}</strong>
+																Agentes de IA / OpenAI <strong>{plan.useOpenAi ? 'Sim' : 'Não'}</strong>
 															</Typography>
 														</div>
 														<div className={classes.pricingCardFeature}>
@@ -630,7 +636,7 @@ const SignUp = () => {
 										<LockOutlined style={{ fontSize: 30 }} />
 									</Avatar>
 									<Typography component="h1" variant="h5" className={classes.title}>
-										Cadastre sua empresa
+										Dados da sua provedora
 									</Typography>
 
 									<Formik
@@ -743,6 +749,33 @@ const SignUp = () => {
 																),
 															}}
 														/>
+													</Grid>
+													<Grid item xs={12}>
+														<FormControlLabel
+															control={
+																<Field
+																	as={Checkbox}
+																	name="acceptTerms"
+																	color="primary"
+																	checked={values.acceptTerms}
+																/>
+															}
+															label={
+																<span>
+																	Li e aceito os{" "}
+																	<Link component={RouterLink} to="/termos" target="_blank">
+																		termos de uso
+																	</Link>{" "}
+																	(licença da minha operação, sem revenda; canal WhatsApp
+																	não oficial com risco de bloqueio).
+																</span>
+															}
+														/>
+														{touched.acceptTerms && errors.acceptTerms && (
+															<Typography color="error" variant="caption" display="block">
+																{errors.acceptTerms}
+															</Typography>
+														)}
 													</Grid>
 												</Grid>
 

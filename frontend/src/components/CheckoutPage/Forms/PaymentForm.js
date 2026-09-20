@@ -171,6 +171,9 @@ export default function Pricing(props) {
   const tiers = storagePlans
   return (
     <React.Fragment>
+      <Typography variant="body2" color="textSecondary" style={{ marginBottom: 12 }}>
+        Esta cobrança é do seu plano atual. Troca de limites (upgrade) só o operador do ISPCHAT libera.
+      </Typography>
       <Grid container spacing={3}>
         {tiers.map((tier) => (
           // Enterprise card is full width at sm breakpoint

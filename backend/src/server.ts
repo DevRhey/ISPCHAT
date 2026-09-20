@@ -7,6 +7,7 @@ import Company from "./models/Company";
 import { startQueueProcess } from "./queues";
 import { TransferTicketQueue } from "./wbotTransferTicketQueue";
 import cron from "node-cron";
+import EnsureCommercialPlansService from "./services/PlanService/EnsureCommercialPlansService";
 
 
 const assertProductionSecrets = () => {
@@ -31,6 +32,11 @@ const assertProductionSecrets = () => {
 assertProductionSecrets();
 
 const server = app.listen(process.env.PORT, async () => {
+  try {
+    await EnsureCommercialPlansService();
+  } catch (err: any) {
+    logger.error(`EnsureCommercialPlans: ${err?.message || err}`);
+  }
   try {
     const companies = await Company.findAll();
     const allPromises: Promise<unknown>[] = [];

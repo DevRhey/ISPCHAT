@@ -26,6 +26,7 @@ import MainHeaderButtonsWrapper from "../../components/MainHeaderButtonsWrapper"
 import Title from "../../components/Title";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import EmptyState from "../../components/EmptyState";
+import OperationLockedBanner from "../../components/OperationLockedBanner";
 import api from "../../services/api";
 import toastError from "../../errors/toastError";
 
@@ -164,9 +165,10 @@ const IspConnectors = () => {
         </MainHeaderButtonsWrapper>
       </MainHeader>
 
+      <OperationLockedBanner />
       <Typography className={classes.hint} variant="body2">
-        Em produção o mock demo fica bloqueado — configure base URL e token (IXC, SGP, Hubsoft ou generic).
-        Use o teste de conexão antes de vincular ao fluxo.
+        Piloto: URL e token são obrigatórios. Sem conector o chatbot não consulta cliente nem emite boleto real.
+        Teste a conexão antes de atender.
       </Typography>
 
       <TextField

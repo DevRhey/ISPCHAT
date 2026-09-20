@@ -10,6 +10,7 @@ COOKIE_SECURE=true
 ALLOW_ISP_DEMO=false
 GERENCIANET_WEBHOOK_SECRET=<token compartilhado>
 GERENCIANET_PIX_KEY=<chave pix>
+PRODUCT_MODE=owner_saas
 ```
 
 ## WhatsApp Cloud API (opcional)
@@ -33,6 +34,8 @@ WHATSAPP_CLOUD_API_VERSION=v19.0
 | GET/POST | `/whatsapp-cloud/webhook` | verify token | Webhook Meta |
 | POST | `/forgetpassword` | público | Body `{ email }` (sem SQLi) |
 | POST | `/resetpasswords` | público | Body `{ email, token, password }` |
+
+`PRODUCT_MODE=owner_saas` — cliente final só usa a própria operação; dono opera tenants/planos.
 
 ## Correções de segurança aplicadas
 

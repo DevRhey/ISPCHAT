@@ -67,6 +67,7 @@ const apiLimiter = rateLimit({
 app.use('/auth', apiLimiter);
 app.use('/forgetpassword', apiLimiter);
 app.use('/resetpasswords', apiLimiter);
+app.use('/companies/cadastro', apiLimiter);
 
 const allowedOrigins = [
   process.env.FRONTEND_URL,

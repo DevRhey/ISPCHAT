@@ -3,6 +3,7 @@ import AppError from "../../errors/AppError";
 import Queue from "../../models/Queue";
 import Company from "../../models/Company";
 import Plan from "../../models/Plan";
+import { assertCompanyOperationReleased } from "../../helpers/companyAccess";
 
 interface QueueData {
   name: string;
@@ -19,6 +20,8 @@ interface QueueData {
 
 const CreateQueueService = async (queueData: QueueData): Promise<Queue> => {
   const { color, name, companyId } = queueData;
+
+  await assertCompanyOperationReleased(companyId);
 
   const company = await Company.findOne({
     where: {

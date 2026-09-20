@@ -4,7 +4,7 @@ import { Route as RouterRoute, Redirect } from "react-router-dom";
 import { AuthContext } from "../context/Auth/AuthContext";
 import BackdropLoading from "../components/BackdropLoading";
 
-const PUBLIC_AUTH_PATHS = ["/", "/home", "/login", "/signup", "/forgetpsw"];
+const PUBLIC_AUTH_PATHS = ["/", "/home", "/login", "/signup", "/forgetpsw", "/termos"];
 
 const Route = ({ component: Component, isPrivate = false, ...rest }) => {
 	const { isAuth, loading } = useContext(AuthContext);

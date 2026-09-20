@@ -1,6 +1,6 @@
 # ISPCHAT (Whaticket SaaS + LangGraph ISP)
 
-Plataforma SaaS de atendimento via WhatsApp com filas, tickets, campanhas, integrações, chatbot e relatórios — estendida com **ISPCHAT**: motor LangGraph e fluxos prontos para provedores de internet.
+Plataforma de atendimento via WhatsApp para **o provedor usar na própria operação**. O dono do SaaS vende contas; o cliente não revende o produto. Estendida com **ISPCHAT**: motor LangGraph e fluxos prontos para ISPs.
 
 - Repositório: https://github.com/DevRhey/ISPCHAT
 - Visão ISPCHAT: [ISPCHAT.md](ISPCHAT.md)

@@ -61,6 +61,19 @@ const useCompanies = () => {
         return data;
     }
 
+    const activate = async (data) => {
+        const { data: responseData } = await api.request({
+            url: `/companies/${data.id}/activate`,
+            method: 'POST',
+            data: {
+                planId: data.planId,
+                trialDays: data.trialDays,
+                operationEnabled: data.operationEnabled
+            }
+        });
+        return responseData;
+    }
+
     const updateSchedules = async (data) => {
         const { data: responseData } = await api.request({
             url: `/companies/${data.id}/schedules`,
@@ -78,7 +91,8 @@ const useCompanies = () => {
         find,
         finding,
         findAll,
-        updateSchedules
+        updateSchedules,
+        activate
     }
 }
 

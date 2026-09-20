@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import IspConnector from "../models/IspConnector";
 import AppError from "../errors/AppError";
 import runIspAction from "../services/IspConnectorServices/runIspAction";
+import { assertCompanyOperationReleased } from "../helpers/companyAccess";
 
 export const index = async (req: Request, res: Response): Promise<Response> => {
   const { companyId } = req.user;
@@ -14,6 +15,7 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
 
 export const store = async (req: Request, res: Response): Promise<Response> => {
   const { companyId } = req.user;
+  await assertCompanyOperationReleased(companyId);
   const { name, provider, baseUrl, token, config, active } = req.body;
 
   const connector = await IspConnector.create({

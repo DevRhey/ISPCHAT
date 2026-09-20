@@ -61,6 +61,8 @@ import formatSerializedId from '../../utils/formatSerializedId';
 import { AuthContext } from "../../context/Auth/AuthContext";
 import { Can } from "../../components/Can";
 import EmptyState from "../../components/EmptyState";
+import PlanLimitsBanner from "../../components/PlanLimitsBanner";
+import OperationLockedBanner from "../../components/OperationLockedBanner";
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -550,6 +552,15 @@ const Connections = () => {
       </MainHeader>
       
       <Paper className={classes.root} elevation={0}>
+        <Box mb={2} p={2} style={{ background: "#FEF3C7", borderRadius: 8 }}>
+          <Typography variant="body2" style={{ color: "#0F172A" }}>
+            Canal padrão: WhatsApp não oficial (Baileys). Há risco de bloqueio pela Meta.
+            Cloud API oficial só com o dono da plataforma. Limite de conexões vem do seu plano;
+            upgrade somente com o operador do ISPCHAT.
+          </Typography>
+        </Box>
+        <PlanLimitsBanner />
+        <OperationLockedBanner />
         {loading ? (
           <div className={classes.loadingContainer}>
             <CircularProgress color="primary" />

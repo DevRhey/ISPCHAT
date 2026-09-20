@@ -3,6 +3,7 @@ import Flow from "../../models/Flow";
 import FlowNode from "../../models/FlowNode";
 import FlowEdge from "../../models/FlowEdge";
 import AppError from "../../errors/AppError";
+import { assertCompanyOperationReleased } from "../../helpers/companyAccess";
 
 interface ListParams {
   companyId: number;
@@ -77,6 +78,7 @@ const normalizeConfig = (config?: string | object): string => {
 };
 
 export const CreateFlowService = async (data: UpsertData): Promise<Flow> => {
+  await assertCompanyOperationReleased(data.companyId);
   const flow = await Flow.create({
     name: data.name,
     description: data.description || "",

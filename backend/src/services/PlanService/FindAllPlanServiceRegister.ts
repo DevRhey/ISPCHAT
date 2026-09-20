@@ -5,7 +5,7 @@ const FindAllPlanServiceRegister = async (): Promise<Plan[]> => {
     where: {
       useInternal: true
     },
-    order: [["name", "ASC"]]
+    order: [["value", "ASC"]]
   });
   return plans;
 };

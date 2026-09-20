@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useReducer } from "react";
+import React, { useState, useEffect, useReducer, useContext } from "react";
 import { toast } from "react-toastify";
 
 import { makeStyles } from "@material-ui/core/styles";
 import Paper from "@material-ui/core/Paper";
+import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
@@ -30,6 +31,8 @@ import ConfirmationModal from "../../components/ConfirmationModal";
 import toastError from "../../errors/toastError";
 
 import moment from "moment";
+import { AuthContext } from "../../context/Auth/AuthContext";
+import PlanLimitsBanner from "../../components/PlanLimitsBanner";
 
 const reducer = (state, action) => {
   if (action.type === "LOAD_INVOICES") {
@@ -86,6 +89,7 @@ const useStyles = makeStyles((theme) => ({
 
 const Invoices = () => {
   const classes = useStyles();
+  const { user } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
   const [pageNumber, setPageNumber] = useState(1);
@@ -183,8 +187,24 @@ const Invoices = () => {
 
       ></SubscriptionModal>
       <MainHeader>
-        <Title>Faturas</Title>
+        <Title>{user?.super ? "Faturas dos clientes" : "Minha assinatura"}</Title>
       </MainHeader>
+      <PlanLimitsBanner />
+      <Paper
+        elevation={0}
+        style={{
+          marginBottom: 12,
+          padding: "10px 14px",
+          background: "#F8FAFC",
+          border: "1px solid #E2E8F0"
+        }}
+      >
+        <Typography variant="body2" style={{ color: "#334155" }}>
+          {user?.super
+            ? "Upgrade de limites (usuários, conexões, filas) só você libera no painel do dono."
+            : "Pague a fatura do plano atual. Para aumentar usuários, conexões ou filas, fale com o operador do ISPCHAT — o cliente não troca de plano sozinho."}
+        </Typography>
+      </Paper>
       <Paper
         className={classes.mainPaper}
         variant="outlined"

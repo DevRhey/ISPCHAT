@@ -38,6 +38,7 @@ import ColorModeContext from "../layout/themeContext";
 import Brightness4Icon from '@material-ui/icons/Brightness4';
 import Brightness7Icon from '@material-ui/icons/Brightness7';
 import OnboardingWizard from "../components/OnboardingWizard";
+import DueDateBanner from "../components/DueDateBanner";
 
 const drawerWidth = 240;
 
@@ -406,6 +407,7 @@ const LoggedInLayout = ({ children }) => {
       </AppBar>
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
+        {user?.id ? <DueDateBanner /> : null}
         {children ? children : null}
       </main>
     </div>

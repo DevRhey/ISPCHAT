@@ -155,7 +155,7 @@ const SettingsCustom = () => {
   return (
     <MainContainer className={classes.root}>
       <MainHeader>
-        <Title>{i18n.t("settings.title")}</Title>
+        <Title>{isSuper() ? "Painel do dono" : "Sua operação"}</Title>
       </MainHeader>
       <Paper className={classes.mainPaper} elevation={1}>
         <Tabs
@@ -167,23 +167,28 @@ const SettingsCustom = () => {
           onChange={handleTabChange}
           className={classes.tab}
         >
-          <Tab label="Opções" value={"options"} />
-          <Tab label="Marca / White-label" value={"whitelabel"} />
+          <Tab label="Sua operação" value={"options"} />
           {schedulesEnabled && <Tab label="Horários" value={"schedules"} />}
+          {isSuper() ? <Tab label="Marca da plataforma" value={"whitelabel"} /> : null}
 		  {isSuper() ? <Tab label="Logo" value={"uploader"} /> : null}
           {isSuper() ? <Tab label="Empresas" value={"companies"} /> : null}
-		  {isSuper() ? <Tab label="Cadastrar Empresa" value={"newcompanie"} /> : null}
+		  {isSuper() ? <Tab label="Cadastrar empresa" value={"newcompanie"} /> : null}
           {isSuper() ? <Tab label="Planos" value={"plans"} /> : null}
           {isSuper() ? <Tab label="Ajuda" value={"helps"} /> : null}
         </Tabs>
         <Paper className={classes.paper} elevation={0}>
-          <TabPanel
-            className={classes.container}
-            value={tab}
-            name={"whitelabel"}
-          >
-            <Whitelabel />
-          </TabPanel>
+          <OnlyForSuperUser
+            user={currentUser}
+            yes={() => (
+              <TabPanel
+                className={classes.container}
+                value={tab}
+                name={"whitelabel"}
+              >
+                <Whitelabel />
+              </TabPanel>
+            )}
+          />
           <TabPanel
             className={classes.container}
             value={tab}

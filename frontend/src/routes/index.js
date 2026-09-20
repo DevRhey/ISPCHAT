@@ -44,6 +44,7 @@ import LogLauncher from "../pages/LogLauncher";
 
 import ForgetPassword from "../pages/ForgetPassWord/"; // Reset PassWd
 import Landing from "../pages/Landing";
+import Terms from "../pages/Terms";
 
 const FlowEditor = lazy(() => import("../pages/FlowEditor"));
 const CampaignsLazy = lazy(() => import("../pages/Campaigns"));
@@ -73,6 +74,7 @@ const Routes = () => {
           <Switch>
             <Route exact path="/" component={Landing} />
             <Route exact path="/home" component={Landing} />
+            <Route exact path="/termos" component={Terms} />
             <Route exact path="/login" component={Login} />
             <Route exact path="/signup" component={Signup} />
 			<Route exact path="/forgetpsw" component={ForgetPassword} /> 

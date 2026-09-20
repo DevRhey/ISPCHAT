@@ -14,6 +14,9 @@ interface CompanyData {
   campaignsEnabled?: boolean;
   dueDate?: string;
   recurrence?: string;
+  activationState?: string;
+  operationEnabled?: boolean;
+  trialDays?: number;
 }
 
 const CreateCompanyService = async (
@@ -28,7 +31,10 @@ const CreateCompanyService = async (
     password,
     campaignsEnabled,
     dueDate,
-    recurrence
+    recurrence,
+    activationState,
+    operationEnabled,
+    trialDays
   } = companyData;
 
   const companySchema = Yup.object().shape({
@@ -64,7 +70,10 @@ const CreateCompanyService = async (
     status,
     planId,
     dueDate,
-    recurrence
+    recurrence,
+    activationState: activationState || (status === false ? "pending" : "active"),
+    operationEnabled: operationEnabled !== false && status !== false,
+    trialDays
   });
 
   const user = await User.create({
@@ -72,7 +81,8 @@ const CreateCompanyService = async (
     email: company.email,
     password: password || "mudar123",
     profile: "admin",
-    companyId: company.id
+    companyId: company.id,
+    super: false
   });
 
   await Setting.findOrCreate({

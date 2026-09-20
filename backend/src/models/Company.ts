@@ -43,6 +43,15 @@ class Company extends Model<Company> {
   status: boolean;
 
   @Column
+  activationState: string;
+
+  @Column
+  operationEnabled: boolean;
+
+  @Column
+  trialDays: number;
+
+  @Column
   dueDate: string;
 
   @Column

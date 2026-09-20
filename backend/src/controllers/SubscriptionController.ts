@@ -167,7 +167,8 @@ export const webhook = async (
 
       await company.update({
         dueDate: date,
-        status: true
+        status: true,
+        activationState: "active"
       });
       await invoices.update({ status: "paid" });
       await company.reload();

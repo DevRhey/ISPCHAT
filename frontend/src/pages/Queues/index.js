@@ -26,6 +26,8 @@ import QueueModal from "../../components/QueueModal";
 import { toast } from "react-toastify";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import { SocketContext } from "../../context/Socket/SocketContext";
+import PlanLimitsBanner from "../../components/PlanLimitsBanner";
+import OperationLockedBanner from "../../components/OperationLockedBanner";
 
 const useStyles = makeStyles((theme) => ({
   mainPaper: {
@@ -192,6 +194,8 @@ const Queues = () => {
           </Button>
         </MainHeaderButtonsWrapper>
       </MainHeader>
+      <PlanLimitsBanner />
+      <OperationLockedBanner />
       <Paper className={classes.mainPaper} variant="outlined">
         <Table size="small">
           <TableHead>

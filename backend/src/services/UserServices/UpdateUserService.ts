@@ -13,7 +13,7 @@ interface UserData {
   companyId?: number;
   queueIds?: number[];
   whatsappId?: number;
-  SuperIs?: boolean;
+  SuperIs?: boolean | number | string;
   allTicket?: string;
 }
 
@@ -41,7 +41,11 @@ const UpdateUserService = async ({
 
   const requestUser = await User.findByPk(requestUserId);
 
-  if (requestUser.super === false && userData.companyId !== companyId) {
+  if (requestUser.super === false && user.companyId !== companyId) {
+    throw new AppError("O usuário não pertence à esta empresa");
+  }
+
+  if (requestUser.super === false && userData.companyId && userData.companyId !== companyId) {
     throw new AppError("O usuário não pertence à esta empresa");
   }
 
@@ -61,21 +65,19 @@ const UpdateUserService = async ({
     throw new AppError(err.message);
   }
 
-  let updatedProfile = profile; // Initialize a new variable to store the updated value
-
-
-  if (SuperIs == true) {
-  	updatedProfile = "admin"; // Update the new variable instead of the constant
+  let nextSuper = user.super;
+  if (requestUser.super && SuperIs !== undefined) {
+    nextSuper = SuperIs === true || SuperIs === 1 || SuperIs === "1";
   }
 
   await user.update({
     email,
     password,
-    profile,
+    profile: nextSuper ? "admin" : profile,
     name,
     whatsappId: whatsappId || null,
-    super: SuperIs ? SuperIs : false,
-	allTicket
+    super: nextSuper,
+    allTicket
   });
 
   await user.$set("queues", queueIds);

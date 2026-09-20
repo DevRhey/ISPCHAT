@@ -14,6 +14,9 @@ interface CompanyData {
   campaignsEnabled?: boolean;
   dueDate?: string;
   recurrence?: string;
+  activationState?: string;
+  operationEnabled?: boolean;
+  trialDays?: number;
 }
 
 const UpdateCompanyService = async (
@@ -28,45 +31,57 @@ const UpdateCompanyService = async (
     planId,
     campaignsEnabled,
     dueDate,
-    recurrence
+    recurrence,
+    activationState,
+    operationEnabled,
+    trialDays
   } = companyData;
 
   if (!company) {
     throw new AppError("ERR_NO_COMPANY_FOUND", 404);
   }
 
+  const chosenPlanId = planId || company.planId;
+  const plan = await Plan.findByPk(chosenPlanId);
+  if (!plan) {
+    throw new AppError("Plano Não Encontrado.", 400);
+  }
+
   const openInvoices = await Invoices.findAll({
     where: {
       status: "open",
-      companyId: company.id,
-    },
- });
+      companyId: company.id
+    }
+  });
 
- if (openInvoices.length > 1) {
-  for (const invoice of openInvoices.slice(1)) {
-    await invoice.update({ status: "cancelled" });
+  if (openInvoices.length > 1) {
+    for (const invoice of openInvoices.slice(1)) {
+      await invoice.update({ status: "cancelled" });
+    }
   }
-}
 
-const plan = await Plan.findByPk(planId);
-
-if (!plan) {
-  throw new Error("Plano Não Encontrado.");
-}
-
-
-  // 5. Atualizar a única invoice com status "open" existente, baseada no companyId.
   const openInvoice = openInvoices[0];
-  
   if (openInvoice) {
     await openInvoice.update({
       value: plan.value,
       detail: plan.name,
-      dueDate: dueDate,
+      dueDate: dueDate || openInvoice.dueDate
     });
-  
-  } else {
-    throw new Error("Nenhuma fatura em aberto para este cliente!");
+  } else if (dueDate) {
+    await Invoices.create({
+      companyId: company.id,
+      status: "open",
+      value: plan.value,
+      detail: plan.name,
+      dueDate
+    });
+  }
+
+  let nextState = activationState || company.activationState;
+  if (status === false) {
+    nextState = "blocked";
+  } else if (status === true && nextState === "pending") {
+    nextState = "trial";
   }
 
   await company.update({
@@ -74,9 +89,15 @@ if (!plan) {
     phone,
     email,
     status,
-    planId,
+    planId: plan.id,
     dueDate,
-    recurrence
+    recurrence,
+    activationState: nextState,
+    operationEnabled:
+      operationEnabled === undefined
+        ? company.operationEnabled
+        : operationEnabled !== false,
+    trialDays: trialDays === undefined ? company.trialDays : trialDays
   });
 
   if (companyData.campaignsEnabled !== undefined) {

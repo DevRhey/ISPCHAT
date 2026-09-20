@@ -28,6 +28,7 @@ import { i18n } from "../../translate/i18n";
 import TableRowSkeleton from "../../components/TableRowSkeleton";
 import UserModal from "../../components/UserModal";
 import ConfirmationModal from "../../components/ConfirmationModal";
+import PlanLimitsBanner from "../../components/PlanLimitsBanner";
 import toastError from "../../errors/toastError";
 import { SocketContext } from "../../context/Socket/SocketContext";
 
@@ -234,6 +235,7 @@ const Users = () => {
           </Button>
         </MainHeaderButtonsWrapper>
       </MainHeader>
+      <PlanLimitsBanner />
       <Paper
         className={classes.mainPaper}
         variant="outlined"

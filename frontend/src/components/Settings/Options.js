@@ -507,7 +507,8 @@ export default function Options(props) {
       </Tabs>
       {settingsLayer === "essential" && (
         <Typography variant="body2" style={{ marginBottom: 16, color: "#64748B" }}>
-          Configurações do dia a dia do atendimento. Use Avançado para integrações ERP, Asaas e opções de super-admin.
+          Configurações da sua operação de atendimento. Integrações ERP (IXC/SGP) ficam em Avançado.
+          Licença de uso da sua provedora — o ISPCHAT não pode ser revendido.
         </Typography>
       )}
       <Grid spacing={3} container>
@@ -946,7 +947,9 @@ export default function Options(props) {
           </FormControl>
         </Grid>
       </Grid>
-      {/*-----------------ASAAS-----------------*/}
+      <OnlyForSuperUser
+        user={currentUser}
+        yes={() => (
       <Grid spacing={3} container
         style={{ marginBottom: 10 }}>
         <Tabs
@@ -956,7 +959,7 @@ export default function Options(props) {
           variant="scrollable"
           className={classes.tab}
         >
-          <Tab label="ASAAS" />
+          <Tab label="ASAAS (gateway do dono)" />
 
         </Tabs>
         <Grid xs={12} sm={12} md={12} item>
@@ -978,7 +981,15 @@ export default function Options(props) {
             </FormHelperText>
           </FormControl>
         </Grid>
+        <Grid xs={12} item>
+          <FormHelperText>
+            Canal oficial: Cloud API / BSP entra quando você ligar WHATSAPP_CLOUD_ENABLED no servidor.
+            Até lá, o tenant usa Baileys com aviso no contrato. Upgrade de plano do cliente só neste painel.
+          </FormHelperText>
+        </Grid>
       </Grid>
+        )}
+      />
         </>
       )}
     </>

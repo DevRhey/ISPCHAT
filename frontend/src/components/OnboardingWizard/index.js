@@ -42,20 +42,20 @@ const steps = [
     path: "/flows"
   },
   {
+    key: "erp",
+    label: "ERP",
+    title: "Conecte o sistema da provedora",
+    body: "Piloto exige IXC, SGP ou Hubsoft com URL e token. Sem conector o bot não consulta cliente nem emite 2ª via real.",
+    cta: "Abrir Conectores",
+    path: "/isp-connectors"
+  },
+  {
     key: "langgraph",
     label: "IA ISP",
     title: "Ligue o ISPCHAT LangGraph",
     body: "Em Integrações, crie tipo ISPCHAT LangGraph e vincule na fila principal se for usar o motor de intenções.",
     cta: "Abrir Integrações",
     path: "/queue-integration"
-  },
-  {
-    key: "connector",
-    label: "ERP",
-    title: "Conector IXC / SGP / HubSoft",
-    body: "Cadastre o ERP em Conectores ISP. Em produção mantenha ALLOW_ISP_DEMO=false para nunca enviar boleto fictício.",
-    cta: "Abrir Conectores",
-    path: "/isp-connectors"
   },
   {
     key: "handoff",

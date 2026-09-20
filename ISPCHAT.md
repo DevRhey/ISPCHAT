@@ -1,6 +1,8 @@
 # ISPCHAT
 
-Assistente conversacional completo para **provedores de internet (ISP)**, baseado em **LangGraph** (runtime embutido) + Whaticket SaaS (WhatsApp / Baileys).
+Produto B2B para **a provedora usar** o atendimento no WhatsApp (não um kit para revender o SaaS). O dono da plataforma opera tenants; cada ISP tem só a própria operação.
+
+Assistente conversacional para **provedores de internet (ISP)**, baseado em **LangGraph** (runtime embutido) + Whaticket (WhatsApp / Baileys).
 
 **Repositório:** https://github.com/DevRhey/ISPCHAT
 

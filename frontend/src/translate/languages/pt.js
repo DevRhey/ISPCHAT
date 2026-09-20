@@ -2,10 +2,10 @@ const messages = {
   pt: {
     translations: {
       signup: {
-        title: "Cadastre-se",
+        title: "Crie a conta da sua provedora",
         toasts: {
-          success: "Usuário criado com sucesso! Faça seu login!!!.",
-          fail: "Erro ao criar usuário. Verifique os dados informados.",
+          success: "Conta criada. Aguarde o operador do ISPCHAT liberar o período de teste.",
+          fail: "Erro ao criar conta. Verifique os dados informados.",
         },
         form: {
           name: "Nome",
@@ -46,7 +46,7 @@ const messages = {
         },
       },
       companies: {
-        title: "Cadastrar Empresa",
+        title: "Cadastrar provedora (dono)",
         form: {
           name: "Nome da Empresa",
           plan: "Plano",
@@ -513,7 +513,7 @@ const messages = {
           annoucements: "Informativos",
           loglauncher:"Atualizações",
           chats: "Chat Interno",
-          financeiro: "Financeiro",
+          financeiro: "Minha assinatura",
           files: "Lista de arquivos",
           prompts: "Open.Ai",
           reports: "Relatórios",
@@ -937,7 +937,7 @@ const messages = {
       },
       settings: {
         success: "Configurações salvas com sucesso.",
-        title: "Configurações",
+        title: "Sua operação",
         settings: {
           userCreation: {
             name: "Criação de usuário",
@@ -1068,6 +1068,14 @@ const messages = {
         ERR_WAPP_GREETING_REQUIRED:
           "A mensagem de saudação é obrigatório quando há mais de uma fila.",
         ERR_CHECK_NUMBER: "Número inválido. Verifique o número e tente novamente.",
+        ERR_COMPANY_PENDING:
+          "Sua empresa ainda aguarda liberação do operador do ISPCHAT.",
+        ERR_COMPANY_INACTIVE:
+          "Sua empresa está bloqueada. Fale com o operador do ISPCHAT.",
+        ERR_COMPANY_EXPIRED:
+          "O período de teste ou a assinatura venceu. Regularize o pagamento.",
+        ERR_OPERATION_NOT_RELEASED:
+          "O operador ainda não liberou WhatsApp e fluxos desta empresa.",
       },
     },
   },

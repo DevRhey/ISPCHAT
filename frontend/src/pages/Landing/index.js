@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { makeStyles, Button, Typography, Box, Container, Grid } from "@material-ui/core";
+import { openApi } from "../../services/api";
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -73,8 +74,39 @@ const useStyles = makeStyles(() => ({
   }
 }));
 
+const fallbackPlans = [
+  {
+    name: "Básico",
+    value: 349,
+    users: 10,
+    connections: 3,
+    queues: 8,
+    useOpenAi: false
+  },
+  {
+    name: "IA",
+    value: 549,
+    users: 10,
+    connections: 3,
+    queues: 8,
+    useOpenAi: true
+  }
+];
+
 const Landing = () => {
   const classes = useStyles();
+  const [plans, setPlans] = useState(fallbackPlans);
+
+  useEffect(() => {
+    openApi
+      .get("/plans/register")
+      .then(({ data }) => {
+        if (Array.isArray(data) && data.length) {
+          setPlans(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <div className={classes.root}>
@@ -82,6 +114,9 @@ const Landing = () => {
         <nav className={classes.nav}>
           <div className={classes.brand}>ISPCHAT</div>
           <Box>
+            <Button component={RouterLink} to="/termos" style={{ marginRight: 8 }}>
+              Termos
+            </Button>
             <Button component={RouterLink} to="/login" style={{ marginRight: 8 }}>
               Entrar
             </Button>
@@ -91,18 +126,19 @@ const Landing = () => {
               variant="contained"
               className={classes.ctaPrimary}
             >
-              Começar trial
+              Cadastrar
             </Button>
           </Box>
         </nav>
 
         <section className={classes.hero}>
           <Typography className={classes.headline}>
-            Atendimento WhatsApp feito para provedores de internet
+            Atendimento WhatsApp da sua provedora
           </Typography>
           <Typography className={classes.sub}>
-            Chatbot com jornadas financeiras, técnicas e comerciais — boleto, ONU,
-            visita, cobertura e retenção — com editor gráfico e conectores IXC/SGP/Hubsoft.
+            Você usa. Nós operamos a plataforma. Sem revenda do produto.
+            Você cadastra a provedora; o dono libera os dias de teste e a operação.
+            Depois do teste, o pagamento ativa o plano. Upgrade só com o operador.
           </Typography>
           <Button
             component={RouterLink}
@@ -110,7 +146,7 @@ const Landing = () => {
             variant="contained"
             className={classes.ctaPrimary}
           >
-            Testar grátis
+            Criar conta da provedora
           </Button>
           <Button
             component={RouterLink}
@@ -127,15 +163,15 @@ const Landing = () => {
             {[
               {
                 t: "Fluxos ISP prontos",
-                b: "2ª via, desbloqueio, agendamento e transferência humana em um fluxo master."
+                b: "2ª via, desbloqueio, agendamento e transferência humana."
               },
               {
-                t: "Editor estilo Z-PRO",
-                b: "Nós ≠ conexões: auto, default e keyword. Simule antes de publicar."
+                t: "ERP obrigatório no piloto",
+                b: "IXC, SGP ou Hubsoft com teste de conexão. Sem mock para cliente real."
               },
               {
-                t: "Conectores ERP",
-                b: "IXC, SGP e Hubsoft com teste de conexão na interface."
+                t: "Canal com aviso claro",
+                b: "Baileys não oficial (risco Meta) ou Cloud API quando o dono habilitar."
               }
             ].map(item => (
               <Grid item xs={12} md={4} key={item.t}>
@@ -147,16 +183,15 @@ const Landing = () => {
         </section>
 
         <section className={classes.section} id="pricing">
-          <Typography variant="h5" style={{ fontWeight: 800, marginBottom: 24 }}>
+          <Typography variant="h5" style={{ fontWeight: 800, marginBottom: 8 }}>
             Planos
           </Typography>
+          <Typography className={classes.cardBody} style={{ marginBottom: 24 }}>
+            10 atendentes em ambos. O plano IA inclui agentes e OpenAI. Ampliação só com o operador.
+          </Typography>
           <Grid container spacing={3}>
-            {[
-              { name: "Starter", price: "Sob consulta", desc: "1 conexão · filas · fluxo ISP" },
-              { name: "Pro", price: "Sob consulta", desc: "Multi-conexão · campanhas · conectores" },
-              { name: "Enterprise", price: "Sob consulta", desc: "White-label · Cloud API · SLA" }
-            ].map(p => (
-              <Grid item xs={12} md={4} key={p.name}>
+            {plans.map(p => (
+              <Grid item xs={12} md={6} key={p.name}>
                 <Box
                   style={{
                     padding: 24,
@@ -166,8 +201,28 @@ const Landing = () => {
                   }}
                 >
                   <Typography style={{ fontWeight: 700 }}>{p.name}</Typography>
-                  <Typography className={classes.price}>{p.price}</Typography>
-                  <Typography className={classes.cardBody}>{p.desc}</Typography>
+                  <Typography className={classes.price}>
+                    R$ {Number(p.value || 0).toLocaleString("pt-BR")}
+                    <Typography component="span" style={{ fontSize: 14, fontWeight: 500, color: "#64748B" }}>
+                      /mês
+                    </Typography>
+                  </Typography>
+                  <Typography className={classes.cardBody}>
+                    {p.users} atendentes · {p.connections} conexão(ões) · {p.queues} filas
+                  </Typography>
+                  <Typography className={classes.cardBody} style={{ marginTop: 8 }}>
+                    {p.useOpenAi
+                      ? "Inclui agentes de IA, OpenAI e automações inteligentes."
+                      : "Atendimento humano e fluxos ISP. Sem agentes de IA."}
+                  </Typography>
+                  <Button
+                    component={RouterLink}
+                    to="/signup"
+                    fullWidth
+                    style={{ marginTop: 16, background: "#2563EB", color: "#fff" }}
+                  >
+                    Começar
+                  </Button>
                 </Box>
               </Grid>
             ))}
@@ -175,8 +230,11 @@ const Landing = () => {
         </section>
 
         <footer className={classes.footer}>
-          ISPCHAT · atendimento para ISPs · WhatsApp via Baileys (não oficial) ou Meta Cloud API
-          (quando habilitada). Consulte a política de canais antes do go-live.
+          Licença de uso, sem revenda.{" "}
+          <RouterLink to="/termos" style={{ color: "#2563EB" }}>
+            Termos
+          </RouterLink>
+          . WhatsApp via Baileys (não oficial) ou Cloud API.
         </footer>
       </Container>
     </div>

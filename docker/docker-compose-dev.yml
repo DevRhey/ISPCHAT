@@ -16,7 +16,8 @@ services:
       - FRONTEND_URL=http://localhost:3000
       # Necessário p/ login via Cloudflare (cookies cross-site SameSite=None)
       - COOKIE_SECURE=true
-      - ALLOW_ISP_DEMO=true
+      - ALLOW_ISP_DEMO=false
+      - PRODUCT_MODE=owner_saas
       - GERENCIANET_WEBHOOK_SECRET=dev-webhook-secret-change-in-prod
       - WHATSAPP_CLOUD_ENABLED=false
       - PROXY_PORT=8080

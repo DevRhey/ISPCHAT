@@ -8,6 +8,7 @@ import { SerializeUser } from "../../helpers/SerializeUser";
 import Queue from "../../models/Queue";
 import Company from "../../models/Company";
 import Setting from "../../models/Setting";
+import { isCompanyLoginBlocked } from "../../helpers/companyAccess";
 
 interface SerializedUser {
   id: number;
@@ -30,25 +31,7 @@ interface Response {
 }
 
 const isCompanyAccessBlocked = (company?: Company | null): string | null => {
-  if (!company) return "ERR_NO_COMPANY_FOUND";
-  if (company.status === false) return "ERR_COMPANY_INACTIVE";
-
-  if (company.dueDate) {
-    const due = new Date(company.dueDate);
-    if (!Number.isNaN(due.getTime())) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      due.setHours(0, 0, 0, 0);
-      // Grace period: 3 dias após vencimento
-      const grace = new Date(due);
-      grace.setDate(grace.getDate() + 3);
-      if (today > grace) {
-        return "ERR_COMPANY_EXPIRED";
-      }
-    }
-  }
-
-  return null;
+  return isCompanyLoginBlocked(company);
 };
 
 const AuthUserService = async ({

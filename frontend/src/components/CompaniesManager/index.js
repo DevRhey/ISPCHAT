@@ -69,7 +69,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export function CompanyForm(props) {
-  const { onSubmit, onDelete, onCancel, initialValue, loading } = props;
+  const { onSubmit, onDelete, onCancel, onActivate, initialValue, loading } = props;
   const classes = useStyles();
   const [plans, setPlans] = useState([]);
   const [modalUser, setModalUser] = useState(false);
@@ -85,6 +85,9 @@ export function CompanyForm(props) {
     //campaignsEnabled: false,
     dueDate: "",
     recurrence: "",
+    activationState: "pending",
+    operationEnabled: false,
+    trialDays: 7,
     ...initialValue,
   });
 
@@ -267,6 +270,33 @@ export function CompanyForm(props) {
                   </Field>
                 </FormControl>
               </Grid>
+              <Grid xs={12} sm={6} md={2} item>
+                <FormControl margin="dense" variant="outlined" fullWidth>
+                  <InputLabel htmlFor="operation-selection">Operação</InputLabel>
+                  <Field
+                    as={Select}
+                    id="operation-selection"
+                    label="Operação"
+                    name="operationEnabled"
+                    margin="dense"
+                  >
+                    <MenuItem value={true}>Liberada</MenuItem>
+                    <MenuItem value={false}>Bloqueada</MenuItem>
+                  </Field>
+                </FormControl>
+              </Grid>
+              <Grid xs={12} sm={6} md={2} item>
+                <Field
+                  as={TextField}
+                  label="Dias de teste"
+                  name="trialDays"
+                  type="number"
+                  variant="outlined"
+                  className={classes.fullWidth}
+                  margin="dense"
+                  helperText="Só o dono define"
+                />
+              </Grid>
               {/*<Grid xs={12} sm={6} md={2} item>
                 <FormControl margin="dense" variant="outlined" fullWidth>
                   <InputLabel htmlFor="status-selection">Campanhas</InputLabel>
@@ -371,6 +401,25 @@ export function CompanyForm(props) {
                           Usuário
                         </ButtonWithSpinner>
                       </Grid>
+                      <Grid xs={6} md={2} item>
+                        <ButtonWithSpinner
+                          style={{ marginTop: 7 }}
+                          className={classes.fullWidth}
+                          loading={loading}
+                          onClick={() =>
+                            onActivate({
+                              id: record.id,
+                              planId: values.values.planId,
+                              trialDays: values.values.trialDays || 7,
+                              operationEnabled: values.values.operationEnabled !== false
+                            })
+                          }
+                          variant="contained"
+                          color="primary"
+                        >
+                          Ativar teste
+                        </ButtonWithSpinner>
+                      </Grid>
                     </>
                   ) : null}
                   <Grid xs={6} md={1} item>
@@ -401,6 +450,15 @@ export function CompaniesManagerGrid(props) {
   const { dateToClient } = useDate();
 
   const renderStatus = (row) => {
+    const labels = {
+      pending: "Pendente",
+      trial: "Teste",
+      active: "Pago",
+      blocked: "Bloqueado"
+    };
+    if (row.activationState && labels[row.activationState]) {
+      return labels[row.activationState];
+    }
     return row.status === false ? "Não" : "Sim";
   };
 
@@ -458,7 +516,8 @@ export function CompaniesManagerGrid(props) {
             <TableCell align="left">Telefone</TableCell>
             <TableCell align="left">Plano</TableCell>
             {/*<TableCell align="left">Campanhas</TableCell>*/}
-            <TableCell align="left">Status</TableCell>
+            <TableCell align="left">Estado</TableCell>
+            <TableCell align="left">Operação</TableCell>
             <TableCell align="left">Criada Em</TableCell>
             <TableCell align="left">Vencimento</TableCell>
           </TableRow>
@@ -478,6 +537,9 @@ export function CompaniesManagerGrid(props) {
               <TableCell align="left">{renderPlan(row)}</TableCell>
 			{/*<TableCell align="left">{renderCampaignsStatus(row)}</TableCell>*/}
               <TableCell align="left">{renderStatus(row)}</TableCell>
+              <TableCell align="left">
+                {row.operationEnabled === false ? "Bloqueada" : "Liberada"}
+              </TableCell>
               <TableCell align="left">{dateToClient(row.createdAt)}</TableCell>
               <TableCell align="left">
                 {dateToClient(row.dueDate)}
@@ -494,7 +556,7 @@ export function CompaniesManagerGrid(props) {
 
 export default function CompaniesManager() {
   const classes = useStyles();
-  const { list, save, update, remove } = useCompanies();
+  const { list, save, update, remove, activate } = useCompanies();
 
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -509,6 +571,9 @@ export default function CompaniesManager() {
     //campaignsEnabled: false,
     dueDate: "",
     recurrence: "",
+    activationState: "pending",
+    operationEnabled: false,
+    trialDays: 7,
   });
 
   useEffect(() => {
@@ -546,6 +611,24 @@ export default function CompaniesManager() {
     setLoading(false);
   };
 
+  const handleActivate = async (data) => {
+    if (!data?.id) {
+      toast.error("Selecione a empresa na lista antes de ativar");
+      return;
+    }
+    setLoading(true);
+    try {
+      await activate(data);
+      await loadPlans();
+      toast.success("Teste liberado. O cliente já pode entrar.");
+    } catch (e) {
+      toast.error(
+        e?.response?.data?.error || "Não foi possível ativar o teste"
+      );
+    }
+    setLoading(false);
+  };
+
   const handleDelete = async () => {
     setLoading(true);
     try {
@@ -575,6 +658,9 @@ export default function CompaniesManager() {
       //campaignsEnabled: false,
       dueDate: "",
       recurrence: "",
+      activationState: "pending",
+      operationEnabled: false,
+      trialDays: 7,
     }));
   };
 
@@ -600,6 +686,9 @@ export default function CompaniesManager() {
       //campaignsEnabled,
       dueDate: data.dueDate || "",
       recurrence: data.recurrence || "",
+      activationState: data.activationState || "pending",
+      operationEnabled: data.operationEnabled !== false,
+      trialDays: data.trialDays || 7,
     }));
   };
 
@@ -612,6 +701,7 @@ export default function CompaniesManager() {
             onDelete={handleOpenDeleteDialog}
             onSubmit={handleSubmit}
             onCancel={handleCancel}
+            onActivate={handleActivate}
             loading={loading}
           />
         </Grid>
