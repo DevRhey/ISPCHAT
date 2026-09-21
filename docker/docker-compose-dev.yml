@@ -1,4 +1,4 @@
-# Backend local em Node 20 (exigência Baileys 7) + Postgres/Redis já existentes
+# Backend local em Node 20 (exigÃªncia Baileys 7) + Postgres/Redis jÃ¡ existentes
 services:
   backend:
     image: node:20-bookworm-slim
@@ -14,7 +14,7 @@ services:
       - NODE_ENV=development
       - BACKEND_URL=http://localhost:8080
       - FRONTEND_URL=http://localhost:3000
-      # Necessário p/ login via Cloudflare (cookies cross-site SameSite=None)
+      # NecessÃ¡rio p/ login via Cloudflare (cookies cross-site SameSite=None)
       - COOKIE_SECURE=true
       - ALLOW_ISP_DEMO=false
       - PRODUCT_MODE=owner_saas

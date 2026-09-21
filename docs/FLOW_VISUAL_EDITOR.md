@@ -39,3 +39,9 @@
 - `frontend/src/components/FlowVisualEditor/` (nós, drawer, paleta, converters)
 - `frontend/src/pages/FlowEditor/`
 - `frontend/src/pages/Flows/`
+
+## Integração com LangGraph (NLU)
+
+Com fluxo na fila, o **FlowEngine** executa o grafo. Se a mensagem do cliente não casar opção/keyword, a **ponte de intenção** (lowIntentBridge) usa o mesmo classifyIntent do miniLangGraph para escolher a aresta — sem misturar o listener LangGraph na mesma fila.
+
+Detalhes: [FLOW_LANGGRAPH_INTEGRATION.md](./FLOW_LANGGRAPH_INTEGRATION.md)

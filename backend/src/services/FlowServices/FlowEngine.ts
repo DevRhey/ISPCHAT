@@ -12,6 +12,7 @@ import UpdateTicketService from "../TicketServices/UpdateTicketService";
 import typebotListener from "../TypebotServices/typebotListener";
 import n8nService from "../n8nService/n8nService";
 import runIspAction from "../IspConnectorServices/runIspAction";
+import { resolveEdgeByIspIntent } from "./flowIntentBridge";
 import { logger } from "../../utils/logger";
 
 type Session = any;
@@ -110,10 +111,64 @@ const matchMenuOption = (
 };
 
 const render = (text: string, vars: Record<string, any>): string => {
-  return String(text || "").replace(/\{\{(\w+)\}\}/g, (_, key) => {
+  let out = String(text || "");
+  // Quark: @cliente_nome* / @lista_contratos  ·  nosso: {{contactName}}
+  out = out.replace(/@(\w+)\*?/g, (_, key) => {
+    const map: Record<string, string> = {
+      cliente_nome: "contactName",
+      lista_contratos: "lista_contratos",
+      cpf: "cpf",
+      protocolo: "protocolo"
+    };
+    const mapped = map[key] || key;
+    const val = vars[mapped] ?? vars[key];
+    return val === undefined || val === null ? "" : String(val);
+  });
+  out = out.replace(/\{\{(\w+)\}\}/g, (_, key) => {
     const val = vars[key];
     return val === undefined || val === null ? "" : String(val);
   });
+  return out;
+};
+
+const isValidCpfCnpj = (raw: string): boolean => {
+  const digits = String(raw || "").replace(/\D/g, "");
+  return digits.length === 11 || digits.length === 14;
+};
+
+const buildListaContratos = (
+  data: Record<string, any>,
+  useAddressAsPlan?: boolean
+): string => {
+  const contracts =
+    data?.contracts ||
+    data?.contratos ||
+    (data?.idContrato || data?.contrato
+      ? [
+          {
+            id: data.idContrato || data.contrato,
+            plano: data.plano || data.servico || data.plan,
+            endereco: data.endereco || data.address
+          }
+        ]
+      : []);
+  if (!Array.isArray(contracts) || !contracts.length) {
+    const nome = data?.nome || data?.name || "";
+    const status = data?.statusContrato || data?.status || "";
+    if (nome || status) {
+      return `• ${nome}${status ? ` — ${status}` : ""}`;
+    }
+    return "• Contrato localizado";
+  }
+  return contracts
+    .map((c: any, i: number) => {
+      const id = c.id || c.idContrato || c.contrato || i + 1;
+      const label = useAddressAsPlan
+        ? c.endereco || c.address || c.plano || c.servico || "Contrato"
+        : c.plano || c.servico || c.plan || c.endereco || "Contrato";
+      return `${i + 1} - ${id} (${label})`;
+    })
+    .join("\n");
 };
 
 const parseVars = (ticket: Ticket): Record<string, any> => {
@@ -183,6 +238,10 @@ const findNext = (
     );
     if (exactHit) return exactHit.edge;
 
+    // Ponte gratuita: NLU ISP (mesmo classifyIntent do LangGraph) → aresta do fluxo
+    const intentEdge = resolveEdgeByIspIntent(body, fromSource, sourceKey);
+    if (intentEdge) return intentEdge as FlowEdge;
+
     const def = parsed.find(p => p.kind === "default");
     if (def) return def.edge;
   }
@@ -230,6 +289,79 @@ const clearFlowState = async (ticket: Ticket) => {
     flowVariables: null,
     chatbot: false
   });
+};
+
+/** Quark Encerramento: none | transfer | close (message) */
+const applyEndAction = async (
+  ticket: Ticket,
+  cfg: Record<string, any>,
+  vars: Record<string, any>
+): Promise<"handled" | "continue"> => {
+  const action = String(
+    cfg.endAction ||
+      (cfg.closeOnComplete || cfg.closedFinish === true || cfg.closedFinish === "true"
+        ? "close"
+        : "none")
+  ).toLowerCase();
+
+  if (!action || action === "none") return "continue";
+
+  if (action === "transfer") {
+    const queueId =
+      cfg.endQueueId != null
+        ? Number(cfg.endQueueId)
+        : cfg.queueId != null
+        ? Number(cfg.queueId)
+        : null;
+    const transferMsg =
+      cfg.endTransferMessage ||
+      cfg.explainedMessage ||
+      cfg.message ||
+      "Estou transferindo seu atendimento. Aguarde um momento.";
+    if (transferMsg) {
+      await sendBotMessage({ body: render(transferMsg, vars), ticket });
+    }
+    await clearFlowState(ticket);
+    await UpdateTicketService({
+      ticketData: {
+        queueId,
+        chatbot: false,
+        useIntegration: false,
+        integrationId: null,
+        status: cfg.status || "pending"
+      } as any,
+      ticketId: ticket.id,
+      companyId: ticket.companyId
+    });
+    return "handled";
+  }
+
+  if (action === "close" || action === "message" || action === "finish") {
+    const closeMsg =
+      cfg.endMessage ||
+      cfg.closeMessage ||
+      cfg.explainedMessage ||
+      cfg.finishMessage ||
+      "Atendimento encerrado. Obrigado!";
+    if (closeMsg) {
+      await sendBotMessage({ body: render(closeMsg, vars), ticket });
+    }
+    if (cfg.satisfactionMessage) {
+      await sendBotMessage({
+        body: render(cfg.satisfactionMessage, vars),
+        ticket
+      });
+    }
+    await clearFlowState(ticket);
+    await UpdateTicketService({
+      ticketData: { status: "closed", chatbot: false } as any,
+      ticketId: ticket.id,
+      companyId: ticket.companyId
+    });
+    return "handled";
+  }
+
+  return "continue";
 };
 
 /**
@@ -302,7 +434,26 @@ const runFlowEngine = async (
 
     if (node.type === "input") {
       const varName = cfg.variable || "input";
-      vars[varName] = body.trim();
+      const trimmed = body.trim();
+      if (
+        (varName === "cpf" || varName === "document") &&
+        !isValidCpfCnpj(trimmed)
+      ) {
+        await sendBotMessage({
+          body: render(
+            cfg.invalidIdMessage ||
+              "Opss. por favor informe um *CPF/CNPJ* válido",
+            vars
+          ),
+          ticket
+        });
+        return true;
+      }
+      vars[varName] = trimmed;
+      if (varName === "cpf" || varName === "document") {
+        vars.cpf = trimmed.replace(/\D/g, "");
+        vars.document = vars.cpf;
+      }
       delete vars._waiting;
       await saveVars(ticket, vars);
       const next = findNext(edges, node.nodeKey, body, "reply") || findNext(edges, node.nodeKey);
@@ -449,7 +600,13 @@ const runFlowEngine = async (
       }
 
       case "input": {
-        const prompt = render(node.message || cfg.prompt || "Digite sua resposta:", vars);
+        const prompt = render(
+          cfg.askIdMessage ||
+            node.message ||
+            cfg.prompt ||
+            "Digite sua resposta:",
+          vars
+        );
         await sendBotMessage({ body: prompt, ticket });
         vars._waiting = node.nodeKey;
         await saveVars(ticket, vars);
@@ -540,8 +697,41 @@ const runFlowEngine = async (
         });
         vars.ispResult = result.data;
         vars.ispOk = result.ok;
-        if (result.message) {
-          await sendBotMessage({ body: render(result.message, vars), ticket });
+        if (result.data && typeof result.data === "object") {
+          if (result.data.nome || result.data.name) {
+            vars.contactName =
+              result.data.nome || result.data.name || vars.contactName;
+          }
+          vars.lista_contratos = buildListaContratos(
+            result.data,
+            Boolean(cfg.useAddressAsPlan)
+          );
+        }
+
+        let msg = result.message;
+        const isLookup =
+          (cfg.action || "lookupClient") === "lookupClient" ||
+          cfg.action === "getClientProfile";
+        if (isLookup) {
+          if (!result.ok && cfg.notFoundMessage) {
+            msg = cfg.notFoundMessage;
+          } else if (result.ok && cfg.contractsListMessage) {
+            msg = cfg.contractsListMessage;
+          }
+        }
+        if (msg) {
+          await sendBotMessage({ body: render(msg, vars), ticket });
+        }
+        // Quark: após sucesso (closed_finish) ou end_action configurado
+        if (
+          result.ok &&
+          (cfg.closedFinish === true ||
+            cfg.closedFinish === "true" ||
+            cfg.closeOnComplete ||
+            cfg.endAction)
+        ) {
+          const handled = await applyEndAction(ticket, cfg, vars);
+          if (handled === "handled") return true;
         }
         await saveVars(ticket, vars);
         const next = findNext(edges, node.nodeKey, result.ok ? "true" : "false");
@@ -560,25 +750,17 @@ const runFlowEngine = async (
       }
 
       case "transfer": {
-        const queueId = cfg.queueId || null;
-        await clearFlowState(ticket);
-        await UpdateTicketService({
-          ticketData: {
-            queueId,
-            chatbot: false,
-            useIntegration: false,
-            integrationId: null,
-            status: cfg.status || "pending"
-          } as any,
-          ticketId: ticket.id,
-          companyId: ticket.companyId
-        });
-        if (cfg.message || node.message) {
-          await sendBotMessage({
-            body: render(cfg.message || node.message, vars),
-            ticket
-          });
-        }
+        const transferCfg = {
+          ...cfg,
+          endAction: "transfer",
+          endQueueId: cfg.endQueueId ?? cfg.queueId,
+          endTransferMessage:
+            cfg.endTransferMessage ||
+            cfg.explainedMessage ||
+            cfg.message ||
+            node.message
+        };
+        await applyEndAction(ticket, transferCfg, vars);
         return true;
       }
 
@@ -633,13 +815,17 @@ const runFlowEngine = async (
       }
 
       case "end": {
-        if (node.message || cfg.message) {
-          await sendBotMessage({
-            body: render(node.message || cfg.message, vars),
-            ticket
-          });
-        }
-        await clearFlowState(ticket);
+        const endCfg = {
+          ...cfg,
+          endAction: cfg.endAction || "close",
+          endMessage:
+            cfg.endMessage ||
+            cfg.closeMessage ||
+            cfg.explainedMessage ||
+            cfg.message ||
+            node.message
+        };
+        await applyEndAction(ticket, endCfg, vars);
         return true;
       }
 
