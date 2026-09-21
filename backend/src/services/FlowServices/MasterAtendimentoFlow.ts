@@ -2,7 +2,7 @@
  * Fluxo gráfico unificado ISP — jornadas de mercado (Roizap/Talqui/MK/Maxbot):
  * Financeiro, Técnico N1, Comercial, Serviços do assinante, retenção e humano.
  */
-export const MASTER_FLOW_NAME = "ISPCHAT — Atendimento Unificado";
+export const MASTER_FLOW_NAME = "ISPCHAT — Atendimento ISP Completo";
 
 type NodeDef = {
   nodeKey: string;
@@ -254,7 +254,7 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
     {
       nodeKey: "fin_transfer",
       type: "transfer",
-      title: "Fila financeira",
+      title: "Departamento financeiro",
       message: "Transferindo para o *financeiro*…",
       config: { status: "pending", queueId: null },
       positionX: -300,
@@ -304,6 +304,14 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       },
       positionX: 280,
       positionY: 520
+    },
+    {
+      nodeKey: "tec_signal",
+      type: "isp_action",
+      title: "Checar sinal ONU",
+      config: { action: "checkSignal" },
+      positionX: 280,
+      positionY: 620
     },
     {
       nodeKey: "tec_reboot",
@@ -393,7 +401,7 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
     {
       nodeKey: "tec_transfer",
       type: "transfer",
-      title: "Fila técnica",
+      title: "Departamento técnico",
       message: "Transferindo para o *suporte técnico*…",
       config: { status: "pending", queueId: null },
       positionX: 420,
@@ -488,7 +496,7 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
     {
       nodeKey: "com_transfer",
       type: "transfer",
-      title: "Fila comercial",
+      title: "Departamento comercial",
       message: "Transferindo para o *comercial*…",
       config: { status: "pending", queueId: null },
       positionX: 940,
@@ -584,7 +592,7 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
     {
       nodeKey: "svc_transfer",
       type: "transfer",
-      title: "Fila serviços",
+      title: "Departamento serviços",
       message: "Transferindo para um especialista…",
       config: { status: "pending", queueId: null },
       positionX: 600,
@@ -630,6 +638,22 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
     { sourceNodeKey: "menu_main", targetNodeKey: "com_menu", condition: "3", label: "Comercial" },
     { sourceNodeKey: "menu_main", targetNodeKey: "svc_menu", condition: "4", label: "Serviços" },
     { sourceNodeKey: "menu_main", targetNodeKey: "human_transfer", condition: "5", label: "Humano" },
+    { sourceNodeKey: "menu_main", targetNodeKey: "fin_cpf", condition: "kw:boleto,2 via,2ª via,fatura,segunda via", label: "kw boleto" },
+    { sourceNodeKey: "menu_main", targetNodeKey: "fin_cpf", condition: "kw:pix", label: "kw pix" },
+    { sourceNodeKey: "menu_main", targetNodeKey: "fin_unlock_cpf", condition: "kw:desbloqueio,desbloquear,bloqueado", label: "kw unlock" },
+    { sourceNodeKey: "menu_main", targetNodeKey: "fin_nego", condition: "kw:negociar,acordo,divida,dívida", label: "kw nego" },
+    { sourceNodeKey: "menu_main", targetNodeKey: "tec_onu", condition: "kw:sem internet,caiu,offline,sem sinal", label: "kw offline" },
+    { sourceNodeKey: "menu_main", targetNodeKey: "tec_slow", condition: "kw:lenta,lentidao,velocidade", label: "kw lenta" },
+    { sourceNodeKey: "menu_main", targetNodeKey: "tec_wifi", condition: "kw:wifi,wi-fi,senha wifi,roteador", label: "kw wifi" },
+    { sourceNodeKey: "menu_main", targetNodeKey: "tec_visit_cpf", condition: "kw:visita,agendar visita", label: "kw visita" },
+    { sourceNodeKey: "menu_main", targetNodeKey: "com_cep", condition: "kw:cep,viabilidade,cobertura", label: "kw cep" },
+    { sourceNodeKey: "menu_main", targetNodeKey: "com_plans", condition: "kw:plano,planos,contratar", label: "kw planos" },
+    { sourceNodeKey: "menu_main", targetNodeKey: "svc_cpf", condition: "kw:contrato,meu plano,dados do contrato", label: "kw contrato" },
+    { sourceNodeKey: "menu_main", targetNodeKey: "svc_cancel", condition: "kw:cancelar,cancelamento", label: "kw cancel" },
+    { sourceNodeKey: "menu_main", targetNodeKey: "svc_anatel", condition: "kw:anatel,reclamacao,reclamação", label: "kw anatel" },
+    { sourceNodeKey: "menu_main", targetNodeKey: "human_transfer", condition: "kw:atendente,humano,falar com", label: "kw humano" },
+    { sourceNodeKey: "menu_main", targetNodeKey: "end", condition: "kw:#sair,sair,encerrar,tchau", label: "kw sair" },
+
 
     // Financeiro
     { sourceNodeKey: "fin_menu", targetNodeKey: "fin_cpf", condition: "1", label: "Boleto" },
@@ -657,9 +681,10 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
     { sourceNodeKey: "tec_menu", targetNodeKey: "tec_visit_cpf", condition: "4", label: "Visita" },
     { sourceNodeKey: "tec_menu", targetNodeKey: "tec_reason", condition: "5", label: "OS" },
     { sourceNodeKey: "tec_menu", targetNodeKey: "menu_main", condition: "0", label: "Voltar" },
-    { sourceNodeKey: "tec_onu", targetNodeKey: "tec_reboot", condition: "1" },
-    { sourceNodeKey: "tec_onu", targetNodeKey: "tec_reboot", condition: "2" },
-    { sourceNodeKey: "tec_onu", targetNodeKey: "tec_reboot", condition: "3" },
+    { sourceNodeKey: "tec_onu", targetNodeKey: "tec_signal", condition: "1" },
+    { sourceNodeKey: "tec_onu", targetNodeKey: "tec_signal", condition: "2" },
+    { sourceNodeKey: "tec_onu", targetNodeKey: "tec_signal", condition: "3" },
+    { sourceNodeKey: "tec_signal", targetNodeKey: "tec_reboot", condition: "auto", label: "⚡ auto" },
     { sourceNodeKey: "tec_reboot", targetNodeKey: "tec_reason", condition: "auto", label: "⚡ auto" },
     { sourceNodeKey: "tec_slow", targetNodeKey: "tec_reason", condition: "auto", label: "⚡ auto" },
     { sourceNodeKey: "tec_wifi", targetNodeKey: "tec_wifi_choice", condition: "auto", label: "⚡ auto" },
@@ -705,8 +730,7 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
 
   return {
     name: MASTER_FLOW_NAME,
-    description:
-      "Atendimento ISP completo: financeiro (boleto/PIX/desbloqueio), técnico N1 (ONU/Wi-Fi/visita/OS), comercial (CEP/planos/instalação), serviços (contrato/endereço/retenção/ANATEL) e humano.",
+    description: "Master único ISP: financeiro, técnico, comercial, serviços, retenção, ANATEL e humano. FlowEngine + ponte NLU.",
     active: true,
     companyId,
     entryNodeKey: "start",
