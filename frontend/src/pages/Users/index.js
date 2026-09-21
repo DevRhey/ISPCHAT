@@ -29,6 +29,7 @@ import TableRowSkeleton from "../../components/TableRowSkeleton";
 import UserModal from "../../components/UserModal";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import PlanLimitsBanner from "../../components/PlanLimitsBanner";
+import EmptyState from "../../components/EmptyState";
 import toastError from "../../errors/toastError";
 import { SocketContext } from "../../context/Socket/SocketContext";
 
@@ -236,6 +237,14 @@ const Users = () => {
         </MainHeaderButtonsWrapper>
       </MainHeader>
       <PlanLimitsBanner />
+      {!loading && users.length === 0 && !searchParam ? (
+        <EmptyState
+          title="Nenhum usuário cadastrado"
+          description="Adicione atendentes e administradores para operar filas, canais e automações da sua empresa."
+          ctaLabel="Cadastrar usuário"
+          onCta={handleOpenUserModal}
+        />
+      ) : (
       <Paper
         className={classes.mainPaper}
         variant="outlined"
@@ -294,6 +303,7 @@ const Users = () => {
           </TableBody>
         </Table>
       </Paper>
+      )}
     </MainContainer>
   );
 };

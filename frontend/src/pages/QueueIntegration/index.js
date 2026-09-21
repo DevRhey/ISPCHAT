@@ -41,6 +41,7 @@ import ConfirmationModal from "../../components/ConfirmationModal";
 import api from "../../services/api";
 import { i18n } from "../../translate/i18n";
 import toastError from "../../errors/toastError";
+import EmptyState from "../../components/EmptyState";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import usePlans from "../../hooks/usePlans";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
@@ -272,6 +273,14 @@ const QueueIntegration = () => {
           </Button>
         </MainHeaderButtonsWrapper>
       </MainHeader>
+      {!loading && queueIntegration.length === 0 && !searchParam ? (
+        <EmptyState
+          title="Nenhuma integração configurada"
+          description="Conecte webhooks, Dialogflow, n8n ou Typebot para estender o atendimento com sistemas externos."
+          ctaLabel="Cadastrar integração"
+          onCta={handleOpenUserModal}
+        />
+      ) : (
       <Paper
         className={classes.mainPaper}
         variant="outlined"
@@ -327,6 +336,7 @@ const QueueIntegration = () => {
           </TableBody>
         </Table>
       </Paper>
+      )}
     </MainContainer>
   );
 };

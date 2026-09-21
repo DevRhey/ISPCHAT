@@ -270,7 +270,7 @@ export default function Options(props) {
       key: "userRating",
       value,
     });
-    toast.success("Operação atualizada com sucesso.");
+    toast.success("Preferência salva.");
     setLoadingUserRating(false);
   }
 
@@ -281,7 +281,7 @@ export default function Options(props) {
       key: 'allowregister',
       value,
     });
-    toast.success('Operação atualizada com sucesso.');
+    toast.success("Preferência salva.");
     setLoadingallowregister(false);
   }
  
@@ -293,7 +293,7 @@ export default function Options(props) {
       key: 'viewclosed',
       value,
     });
-    toast.success('Operação atualizada com sucesso.');
+    toast.success("Preferência salva.");
     setLoadingviewclosed(false);
   }
 
@@ -304,7 +304,7 @@ export default function Options(props) {
       key: 'viewgroups',
       value,
     });
-    toast.success('Operação atualizada com sucesso.');
+    toast.success("Preferência salva.");
     setLoadingviewgroups(false);
   }
     async function handleSendGreetingMessageOneQueues(value) {
@@ -314,7 +314,7 @@ export default function Options(props) {
       key: "sendGreetingMessageOneQueues",
       value,
     });
-	toast.success("Operação atualizada com sucesso.");
+	toast.success("Preferência salva.");
     setLoadingSendGreetingMessageOneQueues(false);
   }
 
@@ -325,7 +325,7 @@ export default function Options(props) {
       key: 'viewregister',
       value,
     });
-    toast.success('Operação atualizada com sucesso.');
+    toast.success("Preferência salva.");
     setLoadingviewregister(false);
   }
   
@@ -336,7 +336,7 @@ export default function Options(props) {
       key: 'trial',
       value,
     });
-    toast.success('Operação atualizada com sucesso.');
+    toast.success("Preferência salva.");
     setLoadingtrial(false);
   }
 
@@ -349,7 +349,7 @@ export default function Options(props) {
       value,
     });
     //toast.success("Oraçãpeo atualizada com sucesso.");
-    toast.success('Operação atualizada com sucesso.', {
+    toast.success("Preferência salva.", {
       position: "top-right",
       autoClose: 2000,
       hideProgressBar: false,
@@ -357,7 +357,7 @@ export default function Options(props) {
       pauseOnHover: false,
       draggable: true,
       theme: "light",
-      });
+    });
     setLoadingScheduleType(false);
     if (typeof scheduleTypeChanged === "function") {
       scheduleTypeChanged(value);
@@ -371,7 +371,7 @@ export default function Options(props) {
       key: "call",
       value,
     });
-    toast.success("Operação atualizada com sucesso.");
+    toast.success("Preferência salva.");
     setLoadingCallType(false);
   }
 
@@ -382,7 +382,7 @@ export default function Options(props) {
       key: "chatBotType",
       value,
     });
-    toast.success("Operação atualizada com sucesso.");
+    toast.success("Preferência salva.");
     setLoadingChatbotType(false);
   }
 
@@ -393,7 +393,7 @@ export default function Options(props) {
       key: "CheckMsgIsGroup",
       value,
     });
-    toast.success("Operação atualizada com sucesso.");
+    toast.success("Preferência salva.");
     setCheckMsgIsGroupType(false);
     /*     if (typeof scheduleTypeChanged === "function") {
           scheduleTypeChanged(value);
@@ -408,7 +408,7 @@ export default function Options(props) {
       key: "sendGreetingAccepted",
       value,
     });
-	toast.success("Operação atualizada com sucesso.");
+	toast.success("Preferência salva.");
     setLoadingSendGreetingAccepted(false);
   }  
   
@@ -423,7 +423,7 @@ export default function Options(props) {
       value,
     });
 
-    toast.success("Operação atualizada com sucesso.");
+    toast.success("Preferência salva.");
     setLoadingSettingsTransfTicket(false);
   } 
  
@@ -434,7 +434,7 @@ export default function Options(props) {
       key: "ipixc",
       value,
     });
-    toast.success("Operação atualizada com sucesso.");
+    toast.success("Preferência salva.");
     setLoadingIpIxcType(false);
   }
 
@@ -445,7 +445,7 @@ export default function Options(props) {
       key: "tokenixc",
       value,
     });
-    toast.success("Operação atualizada com sucesso.");
+    toast.success("Preferência salva.");
     setLoadingTokenIxcType(false);
   }
 
@@ -457,7 +457,7 @@ export default function Options(props) {
       key: "ipmkauth",
       value,
     });
-    toast.success("Operação atualizada com sucesso.");
+    toast.success("Preferência salva.");
     setLoadingIpMkauthType(false);
   }
 
@@ -468,7 +468,7 @@ export default function Options(props) {
       key: "clientidmkauth",
       value,
     });
-    toast.success("Operação atualizada com sucesso.");
+    toast.success("Preferência salva.");
     setLoadingClientIdMkauthType(false);
   }
 
@@ -479,7 +479,7 @@ export default function Options(props) {
       key: "clientsecretmkauth",
       value,
     });
-    toast.success("Operação atualizada com sucesso.");
+    toast.success("Preferência salva.");
     setLoadingClientSecrectMkauthType(false);
   }
 
@@ -490,7 +490,7 @@ export default function Options(props) {
       key: "asaas",
       value,
     });
-    toast.success("Operação atualizada com sucesso.");
+    toast.success("Preferência salva.");
     setLoadingAsaasType(false);
   }
   return (
@@ -506,10 +506,28 @@ export default function Options(props) {
         <Tab value="advanced" label="Avançado" />
       </Tabs>
       {settingsLayer === "essential" && (
-        <Typography variant="body2" style={{ marginBottom: 16, color: "#64748B" }}>
-          Configurações da sua operação de atendimento. Integrações ERP (IXC/SGP) ficam em Avançado.
-          Licença de uso da sua provedora — o ISPCHAT não pode ser revendido.
-        </Typography>
+        <>
+          <Typography variant="body2" style={{ marginBottom: 16, color: "#64748B" }}>
+            Configurações da sua operação de atendimento. Integrações ERP (IXC/SGP) ficam em Avançado.
+            Licença de uso da sua provedora — o ISPCHAT não pode ser revendido.
+          </Typography>
+          <Paper
+            elevation={0}
+            style={{
+              padding: 16,
+              marginBottom: 16,
+              backgroundColor: "#EFF6FF",
+              border: "1px solid #BFDBFE",
+              borderRadius: 8,
+            }}
+          >
+            <Typography variant="body2" style={{ color: "#1E40AF" }}>
+              Ao alterar uma opção, a preferência é salva imediatamente e você verá a confirmação
+              &quot;Preferência salva&quot; no canto da tela. Revise opções de alto impacto
+              (transferência automática, visibilidade de tickets) antes de mudar em horário de pico.
+            </Typography>
+          </Paper>
+        </>
       )}
       <Grid spacing={3} container>
         <Grid xs={12} sm={12} md={12} item>
@@ -526,7 +544,9 @@ export default function Options(props) {
               <MenuItem value={"enabled"}>Habilitadas</MenuItem>
             </Select>
             <FormHelperText>
-              {loadingUserRating && "Atualizando..."}
+              {loadingUserRating
+                ? "Salvando..."
+                : "Permite que o cliente avalie o atendimento após o encerramento. Use os relatórios para acompanhar a satisfação."}
             </FormHelperText>
           </FormControl>
         </Grid>
@@ -547,7 +567,9 @@ export default function Options(props) {
               <MenuItem value={"company"}>Empresa</MenuItem>
             </Select>
             <FormHelperText>
-              {loadingScheduleType && "Atualizando..."}
+              {loadingScheduleType
+                ? "Salvando..."
+                : "Define como o sistema trata mensagens fora do expediente — por fila ou horário global da empresa."}
             </FormHelperText>
           </FormControl>
         </Grid>
@@ -567,7 +589,9 @@ export default function Options(props) {
               <MenuItem value={"enabled"}>Ativado</MenuItem>
             </Select>
             <FormHelperText>
-              {loadingScheduleType && "Atualizando..."}
+              {loadingCheckMsgIsGroup
+                ? "Salvando..."
+                : "Quando ativado, ignora mensagens de grupos do WhatsApp para focar atendimentos individuais."}
             </FormHelperText>
           </FormControl>
         </Grid>
@@ -587,7 +611,9 @@ export default function Options(props) {
               <MenuItem value={"enabled"}>Aceitar</MenuItem>
             </Select>
             <FormHelperText>
-              {loadingCallType && "Atualizando..."}
+              {loadingCallType
+                ? "Salvando..."
+                : "Define se o canal aceita chamadas de voz ou vídeo pelo WhatsApp durante o atendimento."}
             </FormHelperText>
           </FormControl>
         </Grid>
@@ -608,7 +634,9 @@ export default function Options(props) {
              {/*<MenuItem value={"list"}>Lista</MenuItem>*/}
             </Select>
             <FormHelperText>
-              {loadingChatbotType && "Atualizando..."}
+              {loadingChatbotType
+                ? "Salvando..."
+                : "Formato das opções do bot no menu inicial. Texto numerado funciona em qualquer canal WhatsApp."}
             </FormHelperText>
           </FormControl>
         </Grid>
@@ -629,7 +657,9 @@ export default function Options(props) {
               <MenuItem value={"enabled"}>Habilitado</MenuItem>
             </Select>
             <FormHelperText>
-              {loadingSendGreetingAccepted && "Atualizando..."}
+              {loadingSendGreetingAccepted
+                ? "Salvando..."
+                : "Envia mensagem automática ao cliente quando o atendente aceita o ticket."}
             </FormHelperText>
           </FormControl>
         </Grid>
@@ -650,7 +680,9 @@ export default function Options(props) {
               <MenuItem value={"enabled"}>Habilitado</MenuItem>
             </Select>
             <FormHelperText>
-              {loadingSettingsTransfTicket && "Atualizando..."}
+              {loadingSettingsTransfTicket
+                ? "Salvando..."
+                : "Informa o cliente quando o ticket muda de fila ou atendente. Não combine com encerramento automático sem revisar o fluxo."}
             </FormHelperText>
           </FormControl>
         </Grid>
@@ -690,7 +722,9 @@ export default function Options(props) {
               <MenuItem value={'enabled'}>Sim</MenuItem>
             </Select>
             <FormHelperText>
-              {loadingviewclosed && 'Atualizando...'}
+              {loadingviewclosed
+                ? "Salvando..."
+                : "Controla se operadores podem consultar tickets já encerrados na caixa de atendimento."}
             </FormHelperText>
           </FormControl>
         </Grid>
@@ -711,7 +745,9 @@ export default function Options(props) {
               <MenuItem value={'enabled'}>Sim</MenuItem>
             </Select>
             <FormHelperText>
-              {loadingviewgroups && 'Atualizando...'}
+              {loadingviewgroups
+                ? "Salvando..."
+                : "Permite ou bloqueia que operadores vejam e respondam conversas em grupos."}
             </FormHelperText>
           </FormControl>
         </Grid>

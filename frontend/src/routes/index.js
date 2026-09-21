@@ -41,6 +41,7 @@ import QueueIntegration from "../pages/QueueIntegration";
 import Flows from "../pages/Flows";
 import IspConnectors from "../pages/IspConnectors";
 import LogLauncher from "../pages/LogLauncher";
+import AjustesHub from "../pages/AjustesHub";
 
 import ForgetPassword from "../pages/ForgetPassWord/"; // Reset PassWd
 import Landing from "../pages/Landing";
@@ -148,6 +149,12 @@ const Routes = () => {
                   exact
                   path="/messages-api"
                   component={MessagesAPI}
+                  isPrivate
+                />
+                <Route
+                  exact
+                  path="/ajustes"
+                  component={AjustesHub}
                   isPrivate
                 />
                 <Route
