@@ -1,4 +1,5 @@
 import React, { useState, useContext, useEffect } from "react";
+import { useHistory } from "react-router-dom";
 import clsx from "clsx";
 import moment from "moment";
 import {
@@ -17,6 +18,7 @@ import {
 } from "@material-ui/core";
 
 import MenuIcon from "@material-ui/icons/Menu";
+import ForumIcon from "@material-ui/icons/Forum";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import AccountCircle from "@material-ui/icons/AccountCircle";
 import LanguageIcon from "@material-ui/icons/Language";
@@ -167,6 +169,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const LoggedInLayout = ({ children }) => {
+  const history = useHistory();
   const classes = useStyles();
   const [userModalOpen, setUserModalOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -356,6 +359,15 @@ const LoggedInLayout = ({ children }) => {
           />
 
           {user.id && <NotificationsPopOver volume={volume} />}
+
+          <IconButton
+            aria-label="Abrir Chat V2"
+            onClick={() => history.push("/v2/chat/andamento")}
+            style={{ color: "#3499d9", background: "rgba(255,255,255,0.9)", marginRight: 8 }}
+            title="Chat V2"
+          >
+            <ForumIcon />
+          </IconButton>
 
           <AnnouncementsPopover />
 

@@ -1,0 +1,63 @@
+.conversation-pane {
+  flex: 1;
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.conversation-pane.loading {
+  align-items: center;
+  justify-content: center;
+}
+
+.conversation-loading {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.conversation-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.conversation-messages {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.conversation-messages-inner {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.conversation-messages-inner .MuiPaper-root {
+  background: transparent !important;
+}
+
+.conversation-messages .makeStyles-messagesList- {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+
+@media (max-width: 1024px) {
+  .context-panel {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .conversation-pane {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    background: var(--page-blue);
+  }
+}

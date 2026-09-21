@@ -1,0 +1,50 @@
+.connection-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px var(--spacing-md);
+  font-size: 12px;
+}
+
+.connection-status-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.connection-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.connection-dot.online {
+  background: var(--success);
+}
+
+.connection-dot.offline {
+  background: var(--danger);
+}
+
+.connection-text {
+  color: var(--text-secondary);
+}
+
+.connection-text.offline {
+  color: var(--danger);
+}
+
+.connection-refresh {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  border-radius: 50%;
+}
+
+.connection-refresh:hover {
+  background: rgba(0, 0, 0, 0.05);
+}

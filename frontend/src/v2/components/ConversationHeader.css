@@ -1,0 +1,115 @@
+.conversation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.conversation-header-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.conversation-elapsed-pill {
+  display: flex;
+  flex-direction: column;
+  background: #f3f4f6;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+}
+
+.conversation-elapsed-label {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.conversation-elapsed-value {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.conversation-protocol {
+  display: flex;
+  flex-direction: column;
+}
+
+.conversation-protocol-label {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.conversation-protocol-value {
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: var(--chat-primary);
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+
+.conversation-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.conversation-action-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.conversation-action-btn:hover {
+  background: rgba(52, 153, 217, 0.08);
+  color: var(--chat-primary);
+}
+
+.conversation-action-btn.danger:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.conversation-menu-wrap {
+  position: relative;
+}
+
+.conversation-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 12px var(--chat-shadow);
+  z-index: 100;
+  min-width: 200px;
+}
+
+.conversation-menu button {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.conversation-menu button:hover {
+  background: rgba(52, 153, 217, 0.08);
+}

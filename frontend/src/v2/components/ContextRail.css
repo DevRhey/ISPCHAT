@@ -1,0 +1,60 @@
+.context-rail {
+  width: var(--context-rail-width);
+  min-width: var(--context-rail-width);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-xs) 0;
+  gap: 2px;
+}
+
+.context-rail-toggle {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  cursor: pointer;
+  margin-bottom: var(--spacing-xs);
+}
+
+.context-rail-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  color: var(--muted);
+}
+
+.context-rail-item.active {
+  color: var(--tab-color, var(--chat-primary));
+}
+
+.context-rail-item.active .context-rail-icon {
+  background: rgba(52, 153, 217, 0.12);
+  border-radius: var(--radius-sm);
+}
+
+.context-rail-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+}
+
+.context-rail-label {
+  font-size: 9px;
+  text-align: center;
+}

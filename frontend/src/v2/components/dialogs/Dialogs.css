@@ -1,0 +1,222 @@
+.v2-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1300;
+  backdrop-filter: blur(2px);
+}
+
+.v2-dialog {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  width: 90%;
+  max-width: 480px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.v2-dialog-lg {
+  max-width: 512px;
+}
+
+.v2-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--border);
+}
+
+.v2-dialog-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.v2-dialog-close {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+}
+
+.v2-dialog-close:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.v2-dialog-body {
+  padding: var(--spacing-md) var(--spacing-lg);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.v2-dialog-section {
+  margin-bottom: var(--spacing-md);
+}
+
+.v2-dialog-section h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 var(--spacing-xs);
+  color: var(--text);
+}
+
+.v2-dialog-section h4 {
+  font-size: 13px;
+  font-weight: 500;
+  margin: var(--spacing-sm) 0 var(--spacing-xs);
+  color: var(--text-secondary);
+}
+
+.v2-dialog-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 0 var(--spacing-sm);
+}
+
+.v2-dialog-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-xs);
+}
+
+.v2-dialog-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-top: 1px solid var(--border);
+}
+
+.v2-dialog-footer.right {
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+}
+
+.v2-dialog-footer-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.v2-dialog-link {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.v2-segment-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.v2-segment {
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.v2-segment.active {
+  background: var(--chat-primary);
+  color: #fff;
+  border-color: var(--chat-primary);
+}
+
+.v2-select,
+.v2-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.v2-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.v2-textarea::placeholder,
+.v2-input::placeholder {
+  color: var(--muted-light);
+}
+
+.v2-toggle-label,
+.v2-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: var(--spacing-xs);
+  cursor: pointer;
+}
+
+.v2-contact-list {
+  max-height: 160px;
+  overflow-y: auto;
+  margin-top: var(--spacing-xs);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.v2-contact-item {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 13px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+
+.v2-contact-item:last-child {
+  border-bottom: none;
+}
+
+.v2-contact-item:hover,
+.v2-contact-item.selected {
+  background: rgba(52, 153, 217, 0.1);
+  color: var(--chat-primary);
+}
+
+.v2-history-search {
+  display: flex;
+  gap: 8px;
+}
+
+.v2-history-search .v2-input {
+  flex: 1;
+}
+
+.quark-btn-outline,
+.quark-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}

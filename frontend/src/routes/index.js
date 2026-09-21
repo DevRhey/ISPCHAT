@@ -50,6 +50,11 @@ const FlowEditor = lazy(() => import("../pages/FlowEditor"));
 const CampaignsLazy = lazy(() => import("../pages/Campaigns"));
 const RelatoriosLazy = lazy(() => import("../pages/Relatórios"));
 
+const V2ChatRedirect = lazy(() => import("../v2/pages/V2ChatRedirect"));
+const V2ChatInboxPage = lazy(() => import("../v2/pages/V2ChatInboxPage"));
+const V2ChatDashboardPage = lazy(() => import("../v2/pages/V2ChatDashboardPage"));
+const V2ClientesPage = lazy(() => import("../v2/pages/V2ClientesPage"));
+
 const LazyFallback = () => (
   <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
     <CircularProgress />
@@ -80,6 +85,26 @@ const Routes = () => {
 			<Route exact path="/forgetpsw" component={ForgetPassword} /> 
             {/* <Route exact path="/create-company" component={Companies} /> */}
             <WhatsAppsProvider>
+                {/* V2 Chat — shell próprio, fora do LoggedInLayout */}
+                <Route exact path="/v2/chat" component={() => (
+                  <Suspense fallback={<LazyFallback />}><V2ChatRedirect /></Suspense>
+                )} isPrivate />
+                <Route exact path="/v2/chat/dashboard" component={() => (
+                  <Suspense fallback={<LazyFallback />}><V2ChatDashboardPage /></Suspense>
+                )} isPrivate />
+                <Route exact path="/v2/chat/andamento/:ticketId?" component={() => (
+                  <Suspense fallback={<LazyFallback />}><V2ChatInboxPage /></Suspense>
+                )} isPrivate />
+                <Route exact path="/v2/chat/espera/:ticketId?" component={() => (
+                  <Suspense fallback={<LazyFallback />}><V2ChatInboxPage /></Suspense>
+                )} isPrivate />
+                <Route exact path="/v2/chat/automacao/:ticketId?" component={() => (
+                  <Suspense fallback={<LazyFallback />}><V2ChatInboxPage /></Suspense>
+                )} isPrivate />
+                <Route exact path="/v2/chat/clientes" component={() => (
+                  <Suspense fallback={<LazyFallback />}><V2ClientesPage /></Suspense>
+                )} isPrivate />
+
               <LoggedInLayout>
                 <Route exact path="/app" component={Dashboard} isPrivate />
                 <Route exact path="/dashboard" component={Dashboard} isPrivate />

@@ -324,6 +324,11 @@ const MainListItems = (props) => {
             <>
 
               <ListItemLink
+                to="/v2/chat/andamento"
+                primary="Chat V2"
+                icon={<ForumIcon />}
+              />
+              <ListItemLink
                 to="/tickets"
                 primary={i18n.t("mainDrawer.listItems.tickets")}
                 icon={<WhatsAppIcon />}
