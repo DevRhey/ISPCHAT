@@ -1,5 +1,4 @@
 import React, { useContext, useMemo } from "react";
-import ChatShell from "../shell/ChatShell";
 import AttendanceBoard from "../components/AttendanceBoard";
 import useTickets from "../../hooks/useTickets";
 import { AuthContext } from "../../context/Auth/AuthContext";
@@ -29,7 +28,6 @@ const V2ChatDashboardPage = () => {
   }, [allOpen]);
 
   return (
-    <ChatShell activeNav="dashboard">
       <div className="v2-dashboard-layout">
         <header className="v2-dashboard-header">
           <h1>Dashboard de atendimento</h1>
@@ -64,7 +62,6 @@ const V2ChatDashboardPage = () => {
 
         <AttendanceBoard />
       </div>
-    </ChatShell>
   );
 };
 

@@ -33,6 +33,7 @@ import FaceIcon from "@material-ui/icons/Face";
 import { getInitials } from "../../helpers/getInitials";
 import { generateColor } from "../../helpers/colorGenerator";
 import TransferTicketModal from "../TransferTicketModalCustom";
+import { v2TicketPath, v2TicketsListPath } from "../../helpers/v2Paths";
 
 const useStyles = makeStyles((theme) => ({
   ticket: {
@@ -367,7 +368,7 @@ const TicketListItemCustom = ({ ticket }) => {
         userId: user?.id,
         queueId: ticket?.queue?.id,
       });
-      history.push("/tickets/");
+      history.push(v2TicketsListPath());
     } catch (err) {
       toastError(err);
     } finally {
@@ -383,7 +384,7 @@ const TicketListItemCustom = ({ ticket }) => {
         userId: user?.id,
         queueId: ticket?.queue?.id,
       });
-      history.push(`/tickets/${ticket.uuid}`);
+      history.push(v2TicketPath(ticket));
     } catch (err) {
       toastError(err);
     } finally {
@@ -398,7 +399,7 @@ const TicketListItemCustom = ({ ticket }) => {
         status: "open",
         userId: user?.id,
       });
-      history.push(`/tickets/${ticket.uuid}`);
+      history.push(v2TicketPath(ticket));
     } catch (err) {
       toastError(err);
     } finally {

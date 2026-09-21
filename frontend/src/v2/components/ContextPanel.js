@@ -2,6 +2,8 @@ import React from "react";
 import { format, parseISO } from "date-fns";
 import { getInitials } from "../../helpers/getInitials";
 import { generateColor } from "../../helpers/colorGenerator";
+import { ContactNotes } from "../../components/ContactNotes";
+import { TagsContainer } from "../../components/TagsContainer";
 import "./ContextPanel.css";
 
 const ContextPanel = ({ tab, contact, ticket }) => {
@@ -44,12 +46,7 @@ const ContextPanel = ({ tab, contact, ticket }) => {
             </div>
             <div className="context-field">
               <label>Anotações</label>
-              <textarea
-                className="context-notes"
-                placeholder="Clique para adicionar anotações..."
-                rows={3}
-                readOnly
-              />
+              <ContactNotes ticket={ticket} />
             </div>
           </div>
 
@@ -90,9 +87,7 @@ const ContextPanel = ({ tab, contact, ticket }) => {
           </div>
           <div className="context-field">
             <label>Tags do atendimento</label>
-            <select className="context-select" defaultValue="">
-              <option value="" disabled>Adicionar tags</option>
-            </select>
+            <TagsContainer ticket={ticket} />
           </div>
         </div>
       )}

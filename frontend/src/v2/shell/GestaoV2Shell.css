@@ -65,6 +65,15 @@
   padding: var(--spacing-md);
 }
 
+.gestao-page-fill {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+  height: 100%;
+}
+
 .gestao-v2-body .MuiPaper-root {
   border-radius: var(--radius-md) !important;
   box-shadow: 0 1px 3px var(--chat-shadow) !important;

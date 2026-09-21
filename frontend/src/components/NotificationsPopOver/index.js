@@ -21,6 +21,7 @@ import alertSound from "../../assets/sound.mp3";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import { i18n } from "../../translate/i18n";
 import toastError from "../../errors/toastError";
+import { v2TicketPath } from "../../helpers/v2Paths";
 
 const useStyles = makeStyles(theme => ({
 	tabContainer: {
@@ -191,7 +192,7 @@ const NotificationsPopOver = (volume) => {
 		notification.onclick = e => {
 			e.preventDefault();
 			window.focus();
-			historyRef.current.push(`/tickets/${ticket.uuid}`);
+			historyRef.current.push(v2TicketPath(ticket));
 			// handleChangeTab(null, ticket.isGroup? "group" : "open");
 		};
 

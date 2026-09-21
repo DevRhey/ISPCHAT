@@ -14,7 +14,7 @@ const formatElapsed = (startDate) => {
   return `${days} dias ${hours} h ${mins} min ${secs} s`;
 };
 
-const ConversationHeader = ({ ticket, onTransfer, onClose, onMenuAction }) => {
+const ConversationHeader = ({ ticket, onTransfer, onClose, onMenuAction, actions }) => {
   const [elapsed, setElapsed] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -40,6 +40,7 @@ const ConversationHeader = ({ ticket, onTransfer, onClose, onMenuAction }) => {
         </div>
       </div>
       <div className="conversation-header-actions">
+        {actions}
         <button type="button" className="conversation-action-btn" aria-label="Documento" title="Documento">
           <Clipboard size={18} />
         </button>

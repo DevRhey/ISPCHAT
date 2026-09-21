@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useContext } from "react";
 import { useHistory, useParams, useLocation } from "react-router-dom";
-import ChatShell from "../shell/ChatShell";
 import QueueTabs from "../components/QueueTabs";
 import ConnectionStatus from "../components/ConnectionStatus";
 import TicketListHeader from "../components/TicketListHeader";
@@ -56,7 +55,7 @@ const V2ChatInboxPage = () => {
   };
 
   return (
-    <ChatShell activeNav="chat">
+    <>
       <div className="v2-inbox-layout">
         <aside className="v2-inbox-sidebar">
           <QueueTabs counts={counts} />
@@ -105,7 +104,7 @@ const V2ChatInboxPage = () => {
         queuePath={queuePath}
       />
       <HistorySearchDialog open={historyOpen} onClose={() => setHistoryOpen(false)} />
-    </ChatShell>
+    </>
   );
 };
 

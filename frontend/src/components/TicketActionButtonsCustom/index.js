@@ -12,6 +12,7 @@ import ButtonWithSpinner from "../ButtonWithSpinner";
 import toastError from "../../errors/toastError";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import { TicketsContext } from "../../context/Tickets/TicketsContext";
+import { v2TicketsListPath } from "../../helpers/v2Paths";
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import UndoRoundedIcon from '@material-ui/icons/UndoRounded';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -69,7 +70,7 @@ const TicketActionButtonsCustom = ({ ticket }) => {
 				setCurrentTicket({ ...ticket, code: "#open" });
 			} else {
 				setCurrentTicket({ id: null, code: null })
-				history.push("/tickets");
+				history.push(v2TicketsListPath());
 			}
 		} catch (err) {
 			setLoading(false);

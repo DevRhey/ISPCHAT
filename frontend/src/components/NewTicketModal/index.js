@@ -17,6 +17,7 @@ import ButtonWithSpinner from "../ButtonWithSpinner";
 import ContactModal from "../ContactModal";
 import toastError from "../../errors/toastError";
 import { AuthContext } from "../../context/Auth/AuthContext";
+import { v2TicketPath } from "../../helpers/v2Paths";
 import { Grid, ListItemText, MenuItem, Select } from "@material-ui/core";
 import { toast } from "react-toastify";
 import { Facebook, Instagram, WhatsApp } from "@material-ui/icons";
@@ -274,7 +275,7 @@ const NewTicketModal = ({ modalOpen, onClose, initialContact }) => {
 
   const navigateToExistingTicket = () => {
     if (existingTicket) {
-      history.push(`/tickets/${existingTicket.id}`);
+      history.push(v2TicketPath(existingTicket));
       handleCloseExistingTicketModal();
       handleClose();
     }

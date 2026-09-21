@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import ChatShell from "../shell/ChatShell";
 import api from "../../services/api";
 import toastError from "../../errors/toastError";
 import { getInitials } from "../../helpers/getInitials";
@@ -29,7 +28,6 @@ const V2ClientesPage = () => {
   }, [searchParam]);
 
   return (
-    <ChatShell activeNav="clientes">
       <div className="v2-clientes-layout">
         <header className="v2-clientes-header">
           <h1>Clientes</h1>
@@ -67,7 +65,6 @@ const V2ClientesPage = () => {
           )}
         </div>
       </div>
-    </ChatShell>
   );
 };
 
