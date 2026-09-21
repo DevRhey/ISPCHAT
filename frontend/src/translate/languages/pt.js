@@ -421,6 +421,68 @@ const messages = {
       ticketsQueueSelect: {
         placeholder: "Filas",
       },
+      inbox: {
+        buckets: {
+          andamento: "Em andamento",
+          espera: "Em espera",
+          automacao: "Na automação",
+          closed: "Resolvidos",
+          groups: "Grupos",
+        },
+        search: {
+          placeholder: "Buscar por nome ou telefone",
+        },
+        filters: {
+          button: "Filtros",
+          title: "Filtros do atendimento",
+          departments: "Departamentos",
+          channels: "Canais",
+          tags: "Tags",
+          agents: "Atendentes",
+          clear: "Limpar filtros",
+          apply: "Aplicar",
+        },
+        connection: {
+          connectedTitle: "Chat conectado",
+          connectedSubtitle: "{{count}} canal(is) online",
+          disconnectedTitle: "{{count}} canal(is) desconectado(s)",
+          disconnectedSubtitle: "Reconecte para retomar o atendimento pelo WhatsApp.",
+          pendingTitle: "Conexão pendente",
+          pendingSubtitle: "Escaneie o QR Code ou aguarde a sincronização do canal.",
+          noChannelsTitle: "Nenhum canal configurado",
+          noChannelsSubtitle: "Cadastre e conecte um canal WhatsApp para iniciar.",
+          reconnectCta: "Reconectar canal",
+          refresh: "Gerenciar conexões",
+        },
+        historical: {
+          button: "Histórico",
+          title: "Buscar histórico do cliente",
+          hint: "Digite nome ou telefone (mínimo 3 caracteres) para localizar atendimentos anteriores.",
+          placeholder: "Nome ou telefone do cliente",
+          search: "Buscar",
+          empty: "Nenhum contato encontrado com esse termo.",
+          close: "Fechar",
+          openReports: "Abrir relatórios",
+          resultsFor: "Atendimentos de {{name}}",
+          noTickets: "Nenhum atendimento anterior encontrado para este contato.",
+          backToContacts: "Voltar para contatos",
+        },
+        empty: {
+          andamentoTitle: "Nenhum atendimento em andamento",
+          andamentoMessage:
+            "Quando um ticket for aceito por um atendente, ele aparecerá aqui.",
+          esperaTitle: "Nenhum atendimento em espera",
+          esperaMessage:
+            "Novos contatos aguardando fila ou transferência serão listados nesta coluna.",
+          automacaoTitle: "Nenhum atendimento na automação",
+          automacaoMessage:
+            "Tickets conduzidos por fluxos e chatbot aparecem aqui enquanto não forem transferidos.",
+          automacaoCta: "Revisar automações",
+          closedTitle: "Nenhum atendimento resolvido",
+          closedMessage:
+            "Tickets finalizados recentemente aparecem nesta lista.",
+        },
+      },
       tickets: {
         inbox: {
           closedAllTickets: "Fechar todos os tickets?",

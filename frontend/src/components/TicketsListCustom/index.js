@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useReducer, useContext } from "react";
+import { Link } from "react-router-dom";
 
 import { makeStyles } from "@material-ui/core/styles";
 import List from "@material-ui/core/List";
@@ -168,10 +169,16 @@ const TicketsListCustom = (props) => {
     searchParam,
     tags,
     users,
+    whatsappIds,
+    chatbot,
     showAll,
     selectedQueueIds,
     updateCount,
     style,
+    emptyTitle,
+    emptyMessage,
+    emptyCtaLabel,
+    emptyCtaPath,
   } = props;
   const classes = useStyles();
   const [pageNumber, setPageNumber] = useState(1);
@@ -184,15 +191,27 @@ const TicketsListCustom = (props) => {
   useEffect(() => {
     dispatch({ type: "RESET" });
     setPageNumber(1);
-  }, [status, searchParam, dispatch, showAll, tags, users, selectedQueueIds]);
+  }, [
+    status,
+    searchParam,
+    dispatch,
+    showAll,
+    tags,
+    users,
+    whatsappIds,
+    chatbot,
+    selectedQueueIds,
+  ]);
 
   const { tickets, hasMore, loading } = useTickets({
     pageNumber,
     searchParam,
     status,
+    chatbot,
     showAll,
     tags: JSON.stringify(tags),
     users: JSON.stringify(users),
+    whatsappIds: JSON.stringify(whatsappIds),
     queueIds: JSON.stringify(selectedQueueIds),
   });
 
@@ -213,7 +232,18 @@ const TicketsListCustom = (props) => {
     const companyId = localStorage.getItem("companyId");
     const socket = socketManager.getSocket(companyId);
 
+    const matchesChatbotFilter = (ticket) => {
+      if (chatbot === "true") return ticket.chatbot === true;
+      if (chatbot === "false") return !ticket.chatbot;
+      return true;
+    };
+
+    const matchesStatusFilter = (ticket) =>
+      !status || ticket.status === status;
+
     const shouldUpdateTicket = (ticket) =>
+      matchesStatusFilter(ticket) &&
+      matchesChatbotFilter(ticket) &&
       (!ticket.userId || ticket.userId === user?.id || showAll) &&
       (!ticket.queueId || selectedQueueIds.indexOf(ticket.queueId) > -1);
 
@@ -237,7 +267,7 @@ const TicketsListCustom = (props) => {
         });
       }
 
-      if (data.action === "update" && shouldUpdateTicket(data.ticket) && data.ticket.status === status) {
+      if (data.action === "update" && shouldUpdateTicket(data.ticket)) {
         dispatch({
           type: "UPDATE_TICKET",
           payload: data.ticket,
@@ -263,7 +293,7 @@ const TicketsListCustom = (props) => {
         return;
       }
 
-      if (data.action === "create" && shouldUpdateTicket(data.ticket) && ( status === undefined || data.ticket.status === status)) {
+      if (data.action === "create" && shouldUpdateTicket(data.ticket)) {
         dispatch({
           type: "UPDATE_TICKET_UNREAD_MESSAGES",
           payload: data.ticket,
@@ -290,7 +320,18 @@ const TicketsListCustom = (props) => {
     return () => {
       socket.disconnect();
     };
-  }, [status, showAll, user, selectedQueueIds, tags, users, profile, queues, socketManager]);
+  }, [
+    status,
+    chatbot,
+    showAll,
+    user,
+    selectedQueueIds,
+    tags,
+    users,
+    profile,
+    queues,
+    socketManager,
+  ]);
 
   
   useEffect(() => {
@@ -327,11 +368,16 @@ const TicketsListCustom = (props) => {
           {ticketsList.length === 0 && !loading ? (
             <div className={classes.noTicketsDiv}>
               <span className={classes.noTicketsTitle}>
-                {i18n.t("ticketsList.noTicketsTitle")}
+                {emptyTitle || i18n.t("ticketsList.noTicketsTitle")}
               </span>
               <p className={classes.noTicketsText}>
-                {i18n.t("ticketsList.noTicketsMessage")}
+                {emptyMessage || i18n.t("ticketsList.noTicketsMessage")}
               </p>
+              {emptyCtaLabel && emptyCtaPath ? (
+                <Link to={emptyCtaPath} style={{ marginTop: 8, color: "#2563EB" }}>
+                  {emptyCtaLabel}
+                </Link>
+              ) : null}
             </div>
           ) : (
             <>
