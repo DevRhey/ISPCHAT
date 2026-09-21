@@ -96,6 +96,22 @@ const ConversationPane = ({ ticketUuid, queuePath }) => {
     }
   };
 
+  const handleMenuAction = async (action) => {
+    if (!ticket) return;
+    if (action === "return-automation") {
+      try {
+        await api.put(`/tickets/${ticket.id}`, {
+          status: "open",
+          chatbot: true,
+          userId: null,
+        });
+        history.push(listPath);
+      } catch (err) {
+        toastError(err);
+      }
+    }
+  };
+
   if (loading || !ticket) {
     return (
       <div className="conversation-pane loading quark-page-bg">
@@ -111,6 +127,7 @@ const ConversationPane = ({ ticketUuid, queuePath }) => {
           ticket={ticket}
           onTransfer={() => setTransferOpen(true)}
           onClose={handleClose}
+          onMenuAction={handleMenuAction}
           actions={<TicketActionButtonsCustom ticket={ticket} />}
         />
         <div className="conversation-tags-bar">

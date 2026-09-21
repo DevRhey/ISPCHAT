@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import {
   Home,
@@ -15,6 +15,7 @@ import {
   GitBranch,
   DollarSign,
   BarChart2,
+  ArrowLeft,
 } from "react-feather";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import ColorModeContext from "../../layout/themeContext";
@@ -158,6 +159,28 @@ const QuarkShell = ({ children }) => {
             <span className="chat-shell-nav-icon"><Bell size={18} /></span>
             <span className="chat-shell-nav-label">Alerta sonoro</span>
           </button>
+
+          {isChatPath ? (
+            <button
+              type="button"
+              className="chat-shell-nav-item quark-shell-gestao-link"
+              onClick={() => history.push("/settings")}
+              aria-label="Voltar à gestão"
+            >
+              <span className="chat-shell-nav-icon"><ArrowLeft size={18} /></span>
+              <span className="chat-shell-nav-label">Gestão</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="chat-shell-nav-item quark-shell-gestao-link"
+              onClick={() => history.push(V2_CHAT_ANDAMENTO)}
+              aria-label="Ir para atendimento"
+            >
+              <span className="chat-shell-nav-icon"><MessageSquare size={18} /></span>
+              <span className="chat-shell-nav-label">Atendimento</span>
+            </button>
+          )}
 
           <button
             type="button"

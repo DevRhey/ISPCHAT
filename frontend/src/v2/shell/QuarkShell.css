@@ -50,6 +50,14 @@
   padding-top: 8px;
 }
 
+.quark-shell-gestao-link {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  margin-top: 4px;
+  width: 100%;
+  color: var(--muted) !important;
+}
+
 /* Quark tokens on legacy MUI admin pages inside gestão */
 .gestao-v2-body .MuiPaper-root {
   border-radius: var(--radius-md) !important;

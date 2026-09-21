@@ -35,9 +35,28 @@ const V2ChatInboxPage = () => {
   const [filterOpen, setFilterOpen] = useState(false);
   const [newOpen, setNewOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [activeFilter, setActiveFilter] = useState(null);
 
   const { connected, reconnecting, refresh } = useV2Connection();
-  const { tickets, loading } = useV2Tickets({ queueKey, searchParam });
+
+  const filterExtras = useMemo(() => {
+    if (!activeFilter) return {};
+    const { period } = activeFilter;
+    if (period === "Hoje") {
+      return { date: new Date().toISOString().split("T")[0] };
+    }
+    if (period === "Ontem") {
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      return { date: d.toISOString().split("T")[0] };
+    }
+    if (period === "Não lidas") {
+      return { withUnreadMessages: true };
+    }
+    return {};
+  }, [activeFilter]);
+
+  const { tickets, loading } = useV2Tickets({ queueKey, searchParam, ...filterExtras });
 
   const queueIds = user?.queues?.map((q) => q.id) || [];
   const { tickets: andamentoTickets } = useTickets({ status: "open", pageNumber: 1, queueIds });
@@ -95,8 +114,8 @@ const V2ChatInboxPage = () => {
       <FilterDialog
         open={filterOpen}
         onClose={() => setFilterOpen(false)}
-        onApply={() => {}}
-        onClear={() => setSearchParam("")}
+        onApply={(f) => setActiveFilter(f)}
+        onClear={() => { setActiveFilter(null); setSearchParam(""); }}
       />
       <NewAttendanceDialog
         open={newOpen}

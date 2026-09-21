@@ -37,7 +37,7 @@ const reducer = (state, action) => {
   return state;
 };
 
-const useV2Tickets = ({ queueKey, searchParam, tags, users, withUnreadMessages }) => {
+const useV2Tickets = ({ queueKey, searchParam, tags, users, withUnreadMessages, date }) => {
   const { user } = useContext(AuthContext);
   const socketManager = useContext(SocketContext);
   const queueConfig = QUEUE_ROUTES[queueKey] || QUEUE_ROUTES.andamento;
@@ -51,6 +51,7 @@ const useV2Tickets = ({ queueKey, searchParam, tags, users, withUnreadMessages }
     users,
     pageNumber: 1,
     status: queueConfig.status,
+    date,
     showAll: user?.profile === "admin" ? "true" : undefined,
     queueIds: parsedQueueIds,
     withUnreadMessages,
