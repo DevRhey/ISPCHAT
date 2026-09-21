@@ -24,6 +24,8 @@ interface Request {
   queueIds: number[];
   tags: number[];
   users: number[];
+  whatsappIds?: number[];
+  chatbot?: string;
   companyId: number;
 }
 
@@ -39,6 +41,8 @@ const ListTicketsService = async ({
   queueIds,
   tags,
   users,
+  whatsappIds,
+  chatbot,
   status,
   date,
   updatedAt,
@@ -89,6 +93,25 @@ const ListTicketsService = async ({
     whereCondition = {
       ...whereCondition,
       status
+    };
+  }
+
+  if (chatbot === "true") {
+    whereCondition = {
+      ...whereCondition,
+      chatbot: true
+    };
+  } else if (chatbot === "false") {
+    whereCondition = {
+      ...whereCondition,
+      chatbot: { [Op.or]: [false, null] }
+    };
+  }
+
+  if (Array.isArray(whatsappIds) && whatsappIds.length > 0) {
+    whereCondition = {
+      ...whereCondition,
+      whatsappId: { [Op.in]: whatsappIds }
     };
   }
 
