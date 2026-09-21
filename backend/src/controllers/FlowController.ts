@@ -10,7 +10,8 @@ import { ImportIspTemplatesService } from "../services/FlowServices/IspFlowTempl
 import { EnsureMasterAtendimentoFlowService } from "../services/FlowServices/EnsureMasterAtendimentoFlowService";
 import {
   runBuiltinIspSimulations,
-  SimulateFlowConversationService
+  SimulateFlowConversationService,
+  summarizeBuiltinSimulations
 } from "../services/FlowServices/SimulateFlowConversationService";
 
 export const index = async (req: Request, res: Response): Promise<Response> => {
@@ -82,7 +83,8 @@ export const simulate = async (
 
   if (builtin === true || scenario === "builtin") {
     const results = await runBuiltinIspSimulations(companyId);
-    return res.json({ results });
+    const summary = summarizeBuiltinSimulations(results);
+    return res.json({ results, summary });
   }
 
   if (!Array.isArray(messages) || !messages.length) {

@@ -8,6 +8,17 @@ import runFlowEngine, {
   setFlowMessageSender
 } from "./FlowEngine";
 import { EnsureMasterAtendimentoFlowService } from "./EnsureMasterAtendimentoFlowService";
+import {
+  HANDOFF_SCENARIOS,
+  handoffReplyHasProtocol,
+  lastBotReply
+} from "./simulateHandoffChecks";
+
+export {
+  HANDOFF_SCENARIOS,
+  handoffReplyHasProtocol,
+  lastBotReply
+} from "./simulateHandoffChecks";
 
 export type SimTurn = {
   from: "client" | "bot";
@@ -26,6 +37,8 @@ export type SimScenarioResult = {
   finalVariables: Record<string, unknown>;
   ok: boolean;
   notes: string[];
+  /** Handoff scenarios: last bot reply must mention protocol id */
+  handoffProtocolOk?: boolean;
 };
 
 const fakeMsg = (text: string, number: string): proto.IWebMessageInfo =>
@@ -222,6 +235,17 @@ export const SimulateFlowConversationService = async (
   }
 
   const botReplies = turns.filter(t => t.from === "bot").length;
+  const isHandoff = (HANDOFF_SCENARIOS as readonly string[]).includes(
+    params.scenario
+  );
+  const handoffProtocolOk = isHandoff
+    ? handoffReplyHasProtocol(lastBotReply(turns))
+    : undefined;
+
+  if (isHandoff && handoffProtocolOk === false) {
+    notes.push("Handoff sem protocolo na última resposta do bot");
+  }
+
   return {
     scenario: params.scenario,
     contactNumber: number,
@@ -231,7 +255,8 @@ export const SimulateFlowConversationService = async (
     turns,
     finalNodeKey: ticket.flowNodeKey,
     finalVariables,
-    ok: botReplies > 0,
+    ok: botReplies > 0 && (handoffProtocolOk !== false),
+    handoffProtocolOk,
     notes
   };
 };
@@ -360,4 +385,58 @@ export const runBuiltinIspSimulations = async (
     );
   }
   return results;
+};
+
+export type BuiltinSimSummary = {
+  total: number;
+  ok: number;
+  fail: number;
+  financeOk: number;
+  financeTotal: number;
+  handoffOk: number;
+  handoffTotal: number;
+  scenarios: Array<{
+    scenario: string;
+    ok: boolean;
+    handoffProtocolOk?: boolean;
+    lastBot: string;
+    notes: string[];
+  }>;
+};
+
+const FINANCE_SCENARIOS = [
+  "fin_boleto",
+  "fin_desbloqueio",
+  "fin_ja_paguei",
+  "fin_negociar",
+  "kw_boleto"
+];
+
+/** Agrega resultados builtin com checks de financeiro e handoff/protocolo. */
+export const summarizeBuiltinSimulations = (
+  results: SimScenarioResult[]
+): BuiltinSimSummary => {
+  const scenarios = results.map(r => ({
+    scenario: r.scenario,
+    ok: r.ok,
+    handoffProtocolOk: r.handoffProtocolOk,
+    lastBot: lastBotReply(r.turns),
+    notes: r.notes
+  }));
+
+  const finance = results.filter(r => FINANCE_SCENARIOS.includes(r.scenario));
+  const handoff = results.filter(r =>
+    (HANDOFF_SCENARIOS as readonly string[]).includes(r.scenario)
+  );
+
+  return {
+    total: results.length,
+    ok: results.filter(r => r.ok).length,
+    fail: results.filter(r => !r.ok).length,
+    financeOk: finance.filter(r => r.ok).length,
+    financeTotal: finance.length,
+    handoffOk: handoff.filter(r => r.handoffProtocolOk === true).length,
+    handoffTotal: handoff.length,
+    scenarios
+  };
 };

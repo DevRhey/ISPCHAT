@@ -66,7 +66,7 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       type: "message",
       title: "Boas-vindas",
       message:
-        "Olá, {{contactName}}! 👋\nSou o *ISPCHAT*, assistente 24h do provedor.\n\nDigite o *número* ou palavras: *boleto*, *internet*, *plano*, *desbloqueio*, *wifi*, *cancelar*.",
+        "Olá, {{contactName}}! 👋\nMaravilha, então vamos lá! 😃\nSou o assistente 24h do *seu provedor*.\n\nDigite o *número* ou palavras: *boleto*, *internet*, *plano*, *desbloqueio*, *wifi*, *cancelar*.\n*#sair* encerra · *menu* ou *0* volta.",
       positionX: 520,
       positionY: 150
     },
@@ -177,8 +177,14 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       nodeKey: "fin_cpf",
       type: "input",
       title: "CPF financeiro",
-      message: "Informe o *CPF* do titular (somente números):",
-      config: { variable: "cpf" },
+      message:
+        "Para localizar seu cadastro, informe o *CPF do titular* (somente números).\n\n_Digite *0* ou *esquecer* para voltar ao menu principal._",
+      config: {
+        variable: "cpf",
+        resetTo: "menu_main",
+        invalidIdMessage:
+          "⚠️ CPF/CNPJ inválido. Informe *11 dígitos* (CPF) ou *14* (CNPJ).\n\n*0* ou *esquecer* — voltar ao menu."
+      },
       positionX: 40,
       positionY: 520
     },
@@ -186,7 +192,11 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       nodeKey: "fin_lookup",
       type: "isp_action",
       title: "Buscar cliente",
-      config: { action: "lookupClient" },
+      config: {
+        action: "lookupClient",
+        notFoundMessage:
+          "❌ Não encontramos cadastro com este CPF/CNPJ.\nConfira os números ou digite *0* / *esquecer* para voltar ao menu."
+      },
       positionX: 40,
       positionY: 620
     },
@@ -194,7 +204,11 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       nodeKey: "fin_invoice",
       type: "isp_action",
       title: "Gerar boleto/PIX",
-      config: { action: "getInvoice" },
+      config: {
+        action: "getInvoice",
+        outcomeMessage:
+          "✅ *2ª via enviada!* Guarde o link ou pague via PIX.\n\nPróximo passo: após pagar, use *Desbloqueio* no menu financeiro ou digite *5* para falar com um atendente.\n*menu* — outras opções · *#sair* — encerrar"
+      },
       positionX: 40,
       positionY: 720
     },
@@ -203,7 +217,7 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       type: "message",
       title: "Financeiro OK",
       message:
-        "✅ Pronto! Digite *menu* para outras opções ou *#sair* para encerrar.",
+        "Precisa de mais alguma coisa? *menu* · *#sair*\n*Protocolo:* {{protocolo}}",
       positionX: 40,
       positionY: 820
     },
@@ -212,8 +226,13 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       type: "input",
       title: "CPF desbloqueio",
       message:
-        "Para *desbloqueio de confiança*, informe o *CPF* do titular (somente números):",
-      config: { variable: "cpf" },
+        "Para *desbloqueio de confiança*, informe o *CPF do titular* (somente números).\n\n_Digite *0* ou *esquecer* para voltar ao menu principal._",
+      config: {
+        variable: "cpf",
+        resetTo: "menu_main",
+        invalidIdMessage:
+          "⚠️ CPF/CNPJ inválido. Informe *11 dígitos* (CPF) ou *14* (CNPJ).\n\n*0* ou *esquecer* — voltar ao menu."
+      },
       positionX: -160,
       positionY: 520
     },
@@ -221,7 +240,11 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       nodeKey: "fin_unlock_lookup",
       type: "isp_action",
       title: "Validar cliente",
-      config: { action: "lookupClient" },
+      config: {
+        action: "lookupClient",
+        notFoundMessage:
+          "❌ Não encontramos cadastro com este CPF/CNPJ.\nConfira os números ou digite *0* / *esquecer* para voltar ao menu."
+      },
       positionX: -160,
       positionY: 620
     },
@@ -229,7 +252,11 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       nodeKey: "fin_unlock",
       type: "isp_action",
       title: "Desbloquear",
-      config: { action: "unlockService" },
+      config: {
+        action: "unlockService",
+        outcomeMessage:
+          "✅ *Desbloqueio solicitado!* A conexão deve normalizar em alguns minutos.\n\nSe continuar bloqueado após 30 min, digite *5* para falar com o financeiro.\n*menu* — outras opções · *#sair* — encerrar"
+      },
       positionX: -160,
       positionY: 720
     },
@@ -247,7 +274,7 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       type: "message",
       title: "Negociação",
       message:
-        "Vamos negociar sua pendência. Em instantes o *financeiro* assume com propostas de acordo.",
+        "Entendi! Vamos negociar sua pendência. Em instantes o *financeiro* assume com propostas de acordo.",
       positionX: -300,
       positionY: 520
     },
@@ -255,8 +282,9 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       nodeKey: "fin_transfer",
       type: "transfer",
       title: "Departamento financeiro",
-      message: "Transferindo para o *financeiro*…",
-      config: { status: "pending", queueId: null },
+      message:
+        "Pode deixar! 😊\nVou encaminhar você para o *financeiro* do seu provedor.\nAguarde só um pouquinho — já estamos chegando! 💙\n\n*Protocolo:* {{protocolo}}",
+      config: { status: "pending", queueId: null, departmentLabel: "financeiro" },
       positionX: -300,
       positionY: 620
     },
@@ -360,8 +388,14 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       nodeKey: "tec_visit_cpf",
       type: "input",
       title: "CPF visita",
-      message: "Informe o *CPF* do titular para agendar a visita:",
-      config: { variable: "cpf" },
+      message:
+        "Informe o *CPF do titular* para agendar a visita (somente números).\n\n_Digite *0* ou *esquecer* para voltar ao menu principal._",
+      config: {
+        variable: "cpf",
+        resetTo: "menu_main",
+        invalidIdMessage:
+          "⚠️ CPF/CNPJ inválido. Informe *11 dígitos* (CPF) ou *14* (CNPJ).\n\n*0* ou *esquecer* — voltar ao menu."
+      },
       positionX: 680,
       positionY: 520
     },
@@ -369,7 +403,11 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       nodeKey: "tec_visit_lookup",
       type: "isp_action",
       title: "Validar visita",
-      config: { action: "lookupClient" },
+      config: {
+        action: "lookupClient",
+        notFoundMessage:
+          "❌ Não encontramos cadastro com este CPF/CNPJ.\nConfira os números ou digite *0* / *esquecer* para voltar ao menu."
+      },
       positionX: 680,
       positionY: 620
     },
@@ -394,7 +432,11 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       nodeKey: "tec_os",
       type: "isp_action",
       title: "Abrir OS",
-      config: { action: "openTicket" },
+      config: {
+        action: "openTicket",
+        outcomeMessage:
+          "✅ *OS registrada!* Um técnico vai analisar em breve.\n\nPróximo passo: aguarde contato ou digite *5* se precisar falar com alguém agora.\n*Protocolo:* {{protocolo}}"
+      },
       positionX: 420,
       positionY: 860
     },
@@ -402,8 +444,9 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       nodeKey: "tec_transfer",
       type: "transfer",
       title: "Departamento técnico",
-      message: "Transferindo para o *suporte técnico*…",
-      config: { status: "pending", queueId: null },
+      message:
+        "Pode deixar! 😊\nVou encaminhar você para o *suporte técnico* do seu provedor.\nAguarde só um pouquinho — já estamos chegando! 💙\n\n*Protocolo:* {{protocolo}}",
+      config: { status: "pending", queueId: null, departmentLabel: "suporte técnico" },
       positionX: 420,
       positionY: 960
     },
@@ -480,8 +523,14 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       nodeKey: "com_install_cpf",
       type: "input",
       title: "CPF instalação",
-      message: "Informe o *CPF* ou digite *novo* se ainda não é cliente:",
-      config: { variable: "cpf" },
+      message:
+        "Informe o *CPF do titular* ou digite *novo* se ainda não é cliente.\n\n_Digite *0* ou *esquecer* para voltar ao menu principal._",
+      config: {
+        variable: "cpf",
+        resetTo: "menu_main",
+        invalidIdMessage:
+          "⚠️ Informe um CPF válido (11 dígitos), *novo* se ainda não é cliente, ou *0* / *esquecer* para voltar."
+      },
       positionX: 1000,
       positionY: 720
     },
@@ -497,8 +546,9 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       nodeKey: "com_transfer",
       type: "transfer",
       title: "Departamento comercial",
-      message: "Transferindo para o *comercial*…",
-      config: { status: "pending", queueId: null },
+      message:
+        "Pode deixar! 😊\nVou encaminhar você para o *comercial* do seu provedor.\nAguarde só um pouquinho — já estamos chegando! 💙\n\n*Protocolo:* {{protocolo}}",
+      config: { status: "pending", queueId: null, departmentLabel: "comercial" },
       positionX: 940,
       positionY: 920
     },
@@ -541,8 +591,14 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       nodeKey: "svc_cpf",
       type: "input",
       title: "CPF serviços",
-      message: "Informe o *CPF* do titular:",
-      config: { variable: "cpf" },
+      message:
+        "Para consultar seus dados, informe o *CPF do titular* (somente números).\n\n_Digite *0* ou *esquecer* para voltar ao menu principal._",
+      config: {
+        variable: "cpf",
+        resetTo: "menu_main",
+        invalidIdMessage:
+          "⚠️ CPF/CNPJ inválido. Informe *11 dígitos* (CPF) ou *14* (CNPJ).\n\n*0* ou *esquecer* — voltar ao menu."
+      },
       positionX: 360,
       positionY: 1220
     },
@@ -550,7 +606,11 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       nodeKey: "svc_lookup",
       type: "isp_action",
       title: "Localizar",
-      config: { action: "lookupClient" },
+      config: {
+        action: "lookupClient",
+        notFoundMessage:
+          "❌ Não encontramos cadastro com este CPF/CNPJ.\nConfira os números ou digite *0* / *esquecer* para voltar ao menu."
+      },
       positionX: 360,
       positionY: 1320
     },
@@ -585,7 +645,7 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       type: "message",
       title: "ANATEL",
       message:
-        "Registramos sua intenção de reclamação formal.\nProtocolo interno gerado. Um supervisor assume e, se necessário, orienta o canal ANATEL.\n\nTransferindo…",
+        "Registramos sua intenção de reclamação formal.\n*Protocolo:* {{protocolo}}\nUm supervisor assume e, se necessário, orienta o canal ANATEL.\n\nTransferindo…",
       positionX: 840,
       positionY: 1220
     },
@@ -593,8 +653,9 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       nodeKey: "svc_transfer",
       type: "transfer",
       title: "Departamento serviços",
-      message: "Transferindo para um especialista…",
-      config: { status: "pending", queueId: null },
+      message:
+        "Pode deixar! 😊\nVou encaminhar você para um *especialista* do seu provedor.\nAguarde só um pouquinho — já estamos chegando! 💙\n\n*Protocolo:* {{protocolo}}",
+      config: { status: "pending", queueId: null, departmentLabel: "atendimento" },
       positionX: 600,
       positionY: 1520
     },
@@ -612,8 +673,9 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       nodeKey: "human_transfer",
       type: "transfer",
       title: "Atendente",
-      message: "Ok! Transferindo para um *atendente humano*…",
-      config: { status: "pending", queueId: null },
+      message:
+        "Pode deixar! 😊\nVou encaminhar você para um *atendente humano* do seu provedor.\nAguarde só um pouquinho — já estamos chegando! 💙\n\n*Protocolo:* {{protocolo}}",
+      config: { status: "pending", queueId: null, departmentLabel: "atendimento" },
       positionX: 520,
       positionY: 340
     },
