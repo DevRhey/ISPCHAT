@@ -28,6 +28,7 @@ import ConfirmationModal from "../../components/ConfirmationModal";
 import { SocketContext } from "../../context/Socket/SocketContext";
 import PlanLimitsBanner from "../../components/PlanLimitsBanner";
 import OperationLockedBanner from "../../components/OperationLockedBanner";
+import EmptyState from "../../components/EmptyState";
 
 const useStyles = makeStyles((theme) => ({
   mainPaper: {
@@ -196,6 +197,14 @@ const Queues = () => {
       </MainHeader>
       <PlanLimitsBanner />
       <OperationLockedBanner />
+      {!loading && queues.length === 0 ? (
+        <EmptyState
+          title="Nenhum departamento cadastrado"
+          description="Crie filas para organizar financeiro, suporte e comercial. Cada fila pode ter saudação e roteamento próprios."
+          ctaLabel="Cadastrar departamento"
+          onCta={handleOpenQueueModal}
+        />
+      ) : (
       <Paper className={classes.mainPaper} variant="outlined">
         <Table size="small">
           <TableHead>
@@ -285,6 +294,7 @@ const Queues = () => {
           </TableBody>
         </Table>
       </Paper>
+      )}
     </MainContainer>
   );
 };

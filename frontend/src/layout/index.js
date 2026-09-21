@@ -40,7 +40,7 @@ import Brightness7Icon from '@material-ui/icons/Brightness7';
 import OnboardingWizard from "../components/OnboardingWizard";
 import DueDateBanner from "../components/DueDateBanner";
 
-const drawerWidth = 240;
+const drawerWidth = 260;
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -124,13 +124,12 @@ const useStyles = makeStyles((theme) => ({
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
     }),
-    width: theme.spacing(7),
-    [theme.breakpoints.up("sm")]: {
-      width: theme.spacing(9),
+    [theme.breakpoints.up("md")]: {
+      width: drawerWidth,
     },
-    [theme.breakpoints.down("sm")]: {
-      width: "100%"
-    }
+    [theme.breakpoints.down("md")]: {
+      width: "100%",
+    },
   },
   appBarSpacer: {
     minHeight: "48px",
@@ -194,18 +193,17 @@ const LoggedInLayout = ({ children }) => {
   const socketManager = useContext(SocketContext);
 
   useEffect(() => {
-    if (document.body.offsetWidth > 1200) {
-      setDrawerOpen(true);
-    }
+    const syncDrawer = () => {
+      const wide = document.body.offsetWidth >= 960;
+      setDrawerVariant(wide ? "permanent" : "temporary");
+      if (wide) {
+        setDrawerOpen(true);
+      }
+    };
+    syncDrawer();
+    window.addEventListener("resize", syncDrawer);
+    return () => window.removeEventListener("resize", syncDrawer);
   }, []);
-
-  useEffect(() => {
-    if (document.body.offsetWidth < 1000) {
-      setDrawerVariant("temporary");
-    } else {
-      setDrawerVariant("permanent");
-    }
-  }, [drawerOpen]);
 
   useEffect(() => {
     const companyId = localStorage.getItem("companyId");
@@ -296,13 +294,15 @@ const LoggedInLayout = ({ children }) => {
       >
         <div className={classes.toolbarIcon}>
           <img src={`${logoImg}?r=${Math.random()}`} style={{ margin: "0 auto" , width: "50%"}} alt={`${process.env.REACT_APP_NAME_SYSTEM}`} />
-          <IconButton onClick={() => setDrawerOpen(!drawerOpen)}>
-            <ChevronLeftIcon />
-          </IconButton>
+          {drawerVariant === "temporary" ? (
+            <IconButton onClick={() => setDrawerOpen(false)} aria-label="Fechar menu">
+              <ChevronLeftIcon />
+            </IconButton>
+          ) : null}
         </div>
         <Divider />
         <List className={classes.containerWithScroll}>
-          <MainListItems drawerClose={drawerClose} collapsed={!drawerOpen} />
+          <MainListItems drawerClose={drawerClose} />
         </List>
         <Divider />
       </Drawer>
