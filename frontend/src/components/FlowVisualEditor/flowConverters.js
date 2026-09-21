@@ -111,16 +111,62 @@ export const defaultConfigForType = type => {
         ],
         backTo: "menu_main"
       };
-    case "input":
-      return { variable: "input" };
+    case "typebot":
+      return { typebotId: "", slug: "" };
+    case "n8n":
+      return { webhookUrl: "" };
     case "isp_action":
-      return { action: "lookupClient" };
+      return {
+        action: "lookupClient",
+        gatilhoTipo: "topsapp_lookup",
+        triggerKeywords: [],
+        askIdMessage:
+          "Por favor informe o seu *CPF/CNPJ* para iniciarmos o seu atendimento:",
+        invalidIdMessage: "Opss. por favor informe um *CPF/CNPJ* válido",
+        notFoundMessage:
+          "Não localizei seu cadastro. Confira o CPF/CNPJ ou fale com um atendente.",
+        contractsListMessage:
+          "Olá {{contactName}}!\n\nEncontrei:\n{{lista_contratos}}\n\nDigite o número do contrato ou continue.",
+        useAddressAsPlan: false,
+        ticketTags: [],
+        contactTags: [],
+        closeOnComplete: false,
+        closeMessage: "Atendimento encerrado. Obrigado pelo contato!"
+      };
+    case "input":
+      return {
+        variable: "cpf",
+        askIdMessage:
+          "Por favor informe o seu *CPF/CNPJ* para iniciarmos o seu atendimento:",
+        invalidIdMessage: "Opss. por favor informe um *CPF/CNPJ* válido",
+        triggerKeywords: []
+      };
     case "condition":
       return { field: "input", operator: "eq", value: "" };
     case "http":
       return { method: "GET", url: "", storeAs: "httpResult" };
     case "transfer":
-      return { status: "pending", queueId: null };
+      return {
+        status: "pending",
+        queueId: null,
+        endAction: "transfer",
+        explainedMessage:
+          "Estou transferindo seu atendimento. Aguarde um momento.",
+        endTransferMessage:
+          "Olá, estou transferindo o seu atendimento...\nAguarde, em breve você será atendido.",
+        ticketTags: [],
+        contactTags: []
+      };
+    case "end":
+      return {
+        endAction: "close",
+        explainedMessage:
+          "Atendimento encerrado.\n\n*Até logo, volte sempre que precisar!*",
+        endMessage:
+          "Atendimento encerrado.\n\n*Até logo, volte sempre que precisar!*",
+        ticketTags: [],
+        contactTags: []
+      };
     default:
       return {};
   }

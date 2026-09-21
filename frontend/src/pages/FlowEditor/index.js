@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useHistory, useParams } from "react-router-dom";
+import { v2FlowEditorPath, v2FlowsListPath } from "../../helpers/v2Paths";
 import ReactFlow, {
   Background,
   Controls,
@@ -31,18 +32,23 @@ import {
   RadioGroup,
   Radio,
   FormControl,
-  FormLabel
+  FormLabel,
+  Select,
+  MenuItem
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import ArrowBackIcon from "@material-ui/icons/ArrowBack";
 import SaveIcon from "@material-ui/icons/Save";
 import AccountTreeIcon from "@material-ui/icons/AccountTree";
+import ZoomOutMapIcon from "@material-ui/icons/ZoomOutMap";
 import { toast } from "react-toastify";
 
 import api from "../../services/api";
 import toastError from "../../errors/toastError";
 import FlowRfNode, { NODE_META } from "../../components/FlowVisualEditor/FlowRfNode";
-import FlowNodeInspector from "../../components/FlowVisualEditor/FlowNodeInspector";
+import FlowActionDrawer from "../../components/FlowVisualEditor/FlowActionDrawer";
+import FlowPalette from "../../components/FlowVisualEditor/FlowPalette";
+import { toSelectValue } from "../../helpers/muiSelect";
 import {
   apiToRf,
   rfToApi,
@@ -56,7 +62,8 @@ const useStyles = makeStyles(theme => ({
   root: {
     display: "flex",
     flexDirection: "column",
-    height: "calc(100vh - 64px)",
+    height: "100%",
+    minHeight: 0,
     background: "#0f1419",
     color: "#e8eef2"
   },
@@ -65,10 +72,20 @@ const useStyles = makeStyles(theme => ({
     borderBottom: "1px solid rgba(255,255,255,0.08)"
   },
   titleField: {
-    marginLeft: theme.spacing(2),
-    minWidth: 220,
+    marginLeft: theme.spacing(1.5),
+    minWidth: 180,
+    maxWidth: 260,
     "& .MuiInputBase-input": { color: "#fff" },
     "& .MuiInput-underline:before": { borderBottomColor: "rgba(255,255,255,0.3)" }
+  },
+  selectLight: {
+    marginLeft: theme.spacing(1.5),
+    minWidth: 160,
+    maxWidth: 220,
+    color: "#fff",
+    "& .MuiSelect-icon": { color: "rgba(255,255,255,0.7)" },
+    "&:before": { borderBottomColor: "rgba(255,255,255,0.3)" },
+    "&:after": { borderBottomColor: "#26a69a" }
   },
   body: {
     flex: 1,
@@ -111,12 +128,6 @@ const useStyles = makeStyles(theme => ({
     position: "relative",
     background: "#0b1016"
   },
-  inspector: {
-    width: 320,
-    flexShrink: 0,
-    background: "#fafafa",
-    color: "#212121"
-  },
   hint: {
     position: "absolute",
     left: 12,
@@ -134,18 +145,6 @@ const useStyles = makeStyles(theme => ({
 
 const nodeTypes = { flowNode: FlowRfNode };
 
-const PALETTE = [
-  "start",
-  "settings",
-  "message",
-  "menu",
-  "input",
-  "isp_action",
-  "condition",
-  "http",
-  "transfer",
-  "end"
-];
 
 const edgeStyleForCondition = condition => {
   const { type } = conditionToConnection(condition);
@@ -188,13 +187,34 @@ const FlowEditorInner = () => {
     queueId: "",
     entryNodeKey: "start"
   });
+  const [queues, setQueues] = useState([]);
+  const [allFlows, setAllFlows] = useState([]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selection, setSelection] = useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [connectDlg, setConnectDlg] = useState(null); // { params }
   const [connType, setConnType] = useState("auto");
   const [connKeywords, setConnKeywords] = useState("");
+  // Mantém o alvo do drawer estável (id) para não fechar ao focar nos inputs
+  const drawerTargetRef = useRef(null);
+  const ignoreSelectionRef = useRef(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const [qRes, fRes] = await Promise.all([
+          api.get("/queue"),
+          api.get("/flows")
+        ]);
+        setQueues(Array.isArray(qRes.data) ? qRes.data : []);
+        setAllFlows(Array.isArray(fRes.data) ? fRes.data : []);
+      } catch {
+        /* silencioso */
+      }
+    })();
+  }, []);
 
   const loadFlow = useCallback(async id => {
     setLoading(true);
@@ -205,7 +225,7 @@ const FlowEditorInner = () => {
         name: data.name || "",
         description: data.description || "",
         active: data.active !== false,
-        queueId: data.queueId || "",
+        queueId: toSelectValue(data.queueId),
         entryNodeKey: data.entryNodeKey || "start"
       });
       const converted = apiToRf(data.nodes || [], data.edges || []);
@@ -213,7 +233,7 @@ const FlowEditorInner = () => {
       setEdges(converted.edges);
     } catch (err) {
       toastError(err);
-      history.push("/flows");
+      history.push(v2FlowsListPath());
     } finally {
       setLoading(false);
     }
@@ -336,6 +356,52 @@ const FlowEditorInner = () => {
     event.dataTransfer.dropEffect = "move";
   };
 
+
+  const addNodeAtCenter = useCallback(
+    type => {
+      if (!type) return;
+      const keys = nodes.map(n => n.id);
+      const key = type === "start" && !keys.includes("start") ? "start" : newNodeKey(type, keys);
+      const metaType = NODE_META[type] || { label: type };
+      let position = { x: 280, y: 180 };
+      if (rfInstance) {
+        const bounds = reactFlowWrapper.current && reactFlowWrapper.current.getBoundingClientRect();
+        if (bounds) {
+          position = rfInstance.project({
+            x: bounds.width / 2,
+            y: bounds.height / 2
+          });
+          position = { x: position.x - 90, y: position.y - 40 };
+        }
+      }
+      const newNode = {
+        id: key,
+        type: "flowNode",
+        position,
+        data: {
+          nodeKey: key,
+          nodeType: type,
+          title: metaType.label,
+          message:
+            type === "message"
+              ? "Olá, {{contactName}}!"
+              : type === "menu"
+              ? "*Como posso ajudar?*"
+              : type === "input"
+              ? "Por favor, informe o dado solicitado:"
+              : "",
+          config: defaultConfigForType(type)
+        }
+      };
+      setNodes(nds => nds.concat(newNode));
+      setSelection({ kind: "node", node: newNode });
+      drawerTargetRef.current = { kind: "node", id: key };
+      setDrawerOpen(true);
+      toast.info('Bloco "' + metaType.label + '" adicionado');
+    },
+    [nodes, rfInstance, setNodes]
+  );
+
   const onDrop = event => {
     event.preventDefault();
     const type = event.dataTransfer.getData("application/reactflow");
@@ -366,13 +432,43 @@ const FlowEditorInner = () => {
     setNodes(nds => nds.concat(newNode));
   };
 
+  const openNodeDrawer = useCallback(node => {
+    if (!node) return;
+    drawerTargetRef.current = { kind: "node", id: node.id };
+    setSelection({ kind: "node", node });
+    setDrawerOpen(true);
+  }, []);
+
+  const openEdgeDrawer = useCallback(edge => {
+    if (!edge) return;
+    drawerTargetRef.current = { kind: "edge", id: edge.id };
+    setSelection({ kind: "edge", edge });
+    setDrawerOpen(true);
+  }, []);
+
+  const closeDrawer = useCallback(() => {
+    // Impede onSelectionChange de reabrir o drawer no mesmo tick
+    ignoreSelectionRef.current = true;
+    drawerTargetRef.current = null;
+    setDrawerOpen(false);
+    setSelection(null);
+    setNodes(nds => nds.map(n => ({ ...n, selected: false })));
+    setEdges(eds => eds.map(e => ({ ...e, selected: false })));
+    window.setTimeout(() => {
+      ignoreSelectionRef.current = false;
+    }, 120);
+  }, [setNodes, setEdges]);
+
   const onSelectionChange = ({ nodes: selNodes, edges: selEdges }) => {
+    if (ignoreSelectionRef.current) return;
+    // Com drawer aberto, ignorar limpeza/troca automática do React Flow
+    if (drawerTargetRef.current) {
+      return;
+    }
     if (selNodes?.length === 1) {
-      setSelection({ kind: "node", node: selNodes[0] });
+      openNodeDrawer(selNodes[0]);
     } else if (selEdges?.length === 1) {
-      setSelection({ kind: "edge", edge: selEdges[0] });
-    } else {
-      setSelection(null);
+      openEdgeDrawer(selEdges[0]);
     }
   };
 
@@ -381,15 +477,25 @@ const FlowEditorInner = () => {
       nds.map(n => {
         if (n.id !== id) return n;
         const nextData = { ...n.data, ...partial };
-        if (partial.config) nextData.config = partial.config;
+        if (partial.config) {
+          // merge parcial — evita perder campos com updates rápidos do Select
+          nextData.config = { ...(n.data?.config || {}), ...partial.config };
+        }
         return { ...n, data: nextData };
       })
     );
     setSelection(prev => {
       if (!prev || prev.kind !== "node" || prev.node.id !== id) return prev;
+      const nextData = { ...prev.node.data, ...partial };
+      if (partial.config) {
+        nextData.config = {
+          ...(prev.node.data?.config || {}),
+          ...partial.config
+        };
+      }
       return {
         kind: "node",
-        node: { ...prev.node, data: { ...prev.node.data, ...partial } }
+        node: { ...prev.node, data: nextData }
       };
     });
   };
@@ -439,8 +545,28 @@ const FlowEditorInner = () => {
     } else {
       setEdges(eds => eds.filter(e => e.id !== id));
     }
-    setSelection(null);
+    closeDrawer();
   };
+
+  const onNodeClick = useCallback(
+    (_evt, node) => {
+      openNodeDrawer(node);
+    },
+    [openNodeDrawer]
+  );
+
+  const onEdgeClick = useCallback(
+    (_evt, edge) => {
+      openEdgeDrawer(edge);
+    },
+    [openEdgeDrawer]
+  );
+
+  const onPaneClick = useCallback(() => {
+    // Com drawer aberto o backdrop cobre o canvas; ignorar evita click-through do Select
+    if (drawerOpen || ignoreSelectionRef.current) return;
+    closeDrawer();
+  }, [closeDrawer, drawerOpen]);
 
   const handleSave = async () => {
     if (!meta.name?.trim()) {
@@ -477,8 +603,14 @@ const FlowEditorInner = () => {
       } else {
         const { data } = await api.post("/flows", payload);
         toast.success("Automação criada");
-        history.replace(`/flows/editor/${data.id}`);
+        history.replace(v2FlowEditorPath(data.id));
         setMeta(m => ({ ...m, id: data.id }));
+      }
+      try {
+        const { data: list } = await api.get("/flows");
+        setAllFlows(Array.isArray(list) ? list : []);
+      } catch {
+        /* ignore */
       }
     } catch (err) {
       toastError(err);
@@ -506,29 +638,75 @@ const FlowEditorInner = () => {
   return (
     <div className={classes.root}>
       <AppBar position="static" elevation={0} className={classes.bar}>
-        <Toolbar variant="dense">
-          <IconButton color="inherit" onClick={() => history.push("/flows")}>
+        <Toolbar variant="dense" style={{ flexWrap: "wrap", gap: 4, minHeight: 56 }}>
+          <IconButton color="inherit" onClick={() => history.push(v2FlowsListPath())}>
             <ArrowBackIcon />
           </IconButton>
-          <AccountTreeIcon style={{ marginRight: 8, opacity: 0.85 }} />
-          <Typography variant="subtitle1" style={{ fontWeight: 700 }}>
+          <AccountTreeIcon style={{ marginRight: 4, opacity: 0.85 }} />
+          <Typography variant="subtitle1" style={{ fontWeight: 700, whiteSpace: "nowrap" }}>
             Editor de fluxos
           </Typography>
+
+          <Select
+            className={classes.selectLight}
+            value={toSelectValue(meta.id)}
+            displayEmpty
+            onChange={e => {
+              const id = e.target.value;
+              if (id) history.push(v2FlowEditorPath(id));
+              else history.push(v2FlowsListPath());
+            }}
+            disableUnderline
+          >
+            <MenuItem value="">
+              <em>Nova automação</em>
+            </MenuItem>
+            {allFlows.map(f => (
+              <MenuItem key={f.id} value={toSelectValue(f.id)}>
+                {f.name}
+                {f.active === false ? " (inativo)" : ""}
+              </MenuItem>
+            ))}
+          </Select>
+
           <TextField
             className={classes.titleField}
             value={meta.name}
             onChange={e => setMeta(m => ({ ...m, name: e.target.value }))}
             placeholder="Nome da automação"
           />
-          <TextField
-            className={classes.titleField}
-            value={meta.queueId}
-            onChange={e => setMeta(m => ({ ...m, queueId: e.target.value }))}
-            placeholder="ID fila (opc.)"
-            style={{ minWidth: 120 }}
-          />
+
+          <Select
+            className={classes.selectLight}
+            value={toSelectValue(meta.queueId)}
+            displayEmpty
+            onChange={e =>
+              setMeta(m => ({ ...m, queueId: toSelectValue(e.target.value) }))
+            }
+            disableUnderline
+          >
+            <MenuItem value="">
+              <em>Sem departamento</em>
+            </MenuItem>
+            {queues.map(q => (
+              <MenuItem key={q.id} value={toSelectValue(q.id)}>
+                <span
+                  style={{
+                    display: "inline-block",
+                    width: 10,
+                    height: 10,
+                    borderRadius: "50%",
+                    background: q.color || "#90a4ae",
+                    marginRight: 10
+                  }}
+                />
+                {q.name}
+              </MenuItem>
+            ))}
+          </Select>
+
           <FormControlLabel
-            style={{ marginLeft: 8, color: "#fff" }}
+            style={{ marginLeft: 4, color: "#fff" }}
             control={
               <Switch
                 checked={meta.active}
@@ -539,6 +717,15 @@ const FlowEditorInner = () => {
             label="Ativo"
           />
           <div style={{ flex: 1 }} />
+          <Tooltip title="Centralizar canvas">
+            <IconButton
+              color="inherit"
+              size="small"
+              onClick={() => rfInstance?.fitView?.({ padding: 0.2 })}
+            >
+              <ZoomOutMapIcon />
+            </IconButton>
+          </Tooltip>
           <Tooltip title="Salvar grafo no FlowEngine (WhatsApp)">
             <span>
               <Button
@@ -556,27 +743,7 @@ const FlowEditorInner = () => {
       </AppBar>
 
       <div className={classes.body}>
-        <aside className={classes.palette}>
-          <div className={classes.paletteTitle}>Blocos</div>
-          {PALETTE.map(type => (
-            <button
-              key={type}
-              type="button"
-              className={classes.paletteItem}
-              draggable
-              onDragStart={e => onDragStart(e, type)}
-              style={{ borderLeft: `4px solid ${NODE_META[type].color}` }}
-            >
-              {NODE_META[type].label}
-            </button>
-          ))}
-          <Typography
-            variant="caption"
-            style={{ display: "block", marginTop: 16, opacity: 0.55, padding: "0 4px" }}
-          >
-            Arraste blocos. Ao conectar, escolha: ⚡ auto, padrão ou keywords.
-          </Typography>
-        </aside>
+        <FlowPalette onDragStart={onDragStart} onAddNode={addNodeAtCenter} />
 
         <div className={classes.canvasWrap} ref={reactFlowWrapper}>
           <ReactFlow
@@ -589,9 +756,22 @@ const FlowEditorInner = () => {
             onDrop={onDrop}
             onDragOver={onDragOver}
             onSelectionChange={onSelectionChange}
+            onNodeClick={onNodeClick}
+            onEdgeClick={onEdgeClick}
+            onPaneClick={onPaneClick}
             nodeTypes={nodeTypes}
             fitView
-            deleteKeyCode={["Backspace", "Delete"]}
+            snapToGrid
+            snapGrid={[16, 16]}
+            connectionLineStyle={{ stroke: "#26a69a", strokeWidth: 2 }}
+            defaultEdgeOptions={{ type: "smoothstep" }}
+            nodesDraggable={!drawerOpen}
+            nodesConnectable={!drawerOpen}
+            elementsSelectable={!drawerOpen}
+            panOnDrag={!drawerOpen}
+            zoomOnScroll={!drawerOpen}
+            deleteKeyCode={drawerOpen ? null : ["Backspace", "Delete"]}
+            multiSelectionKeyCode={drawerOpen ? null : "Meta"}
             style={{ width: "100%", height: "100%" }}
           >
             <Background color="#2a3544" gap={18} />
@@ -602,20 +782,20 @@ const FlowEditorInner = () => {
             />
           </ReactFlow>
           <Paper className={classes.hint} elevation={0}>
-            Modelo Z-PRO: interação no nó · conexão na aresta (auto / padrão /
-            keyword). Configurações = gatilho, timeout e fallback.
+            Clique no bloco para editar. Conexões: automático, palavra-chave ou opção exata do menu.
           </Paper>
         </div>
-
-        <div className={classes.inspector}>
-          <FlowNodeInspector
-            selection={selection}
-            onChangeNode={handleChangeNode}
-            onChangeEdge={handleChangeEdge}
-            onDelete={handleDelete}
-          />
-        </div>
       </div>
+
+      <FlowActionDrawer
+        open={drawerOpen && Boolean(selection)}
+        selection={selection}
+        onClose={closeDrawer}
+        onChangeNode={handleChangeNode}
+        onChangeEdge={handleChangeEdge}
+        onDelete={handleDelete}
+        queues={queues}
+      />
 
       <Dialog
         open={Boolean(connectDlg)}
@@ -623,7 +803,7 @@ const FlowEditorInner = () => {
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>Tipo de conexão</DialogTitle>
+        <DialogTitle>Como este caminho avança?</DialogTitle>
         <DialogContent>
           <FormControl component="fieldset" fullWidth>
             <FormLabel component="legend" style={{ marginBottom: 8 }}>

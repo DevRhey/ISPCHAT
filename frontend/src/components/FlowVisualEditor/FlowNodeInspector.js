@@ -13,7 +13,7 @@ import {
 import { makeStyles } from "@material-ui/core/styles";
 import DeleteIcon from "@material-ui/icons/Delete";
 import AddIcon from "@material-ui/icons/Add";
-import { NODE_META } from "./FlowRfNode";
+import { NODE_META, ISP_ACTION_LABELS } from "./FlowRfNode";
 import { conditionToConnection, connectionToCondition } from "./flowConverters";
 
 const useStyles = makeStyles(theme => ({
@@ -43,6 +43,10 @@ const useStyles = makeStyles(theme => ({
 const ISP_ACTIONS = [
   "lookupClient",
   "getInvoice",
+  "unlockService",
+  "scheduleVisit",
+  "getContract",
+  "checkSignal",
   "checkCoverage",
   "openTicket",
   "custom"
@@ -255,7 +259,7 @@ const FlowNodeInspector = ({
           >
             {ISP_ACTIONS.map(a => (
               <MenuItem key={a} value={a}>
-                {a}
+                {(ISP_ACTION_LABELS && ISP_ACTION_LABELS[a]) || a}
               </MenuItem>
             ))}
           </Select>
@@ -334,7 +338,7 @@ const FlowNodeInspector = ({
 
       {data.nodeType === "transfer" && (
         <TextField
-          label="ID da fila destino (opcional)"
+          label="ID do departamento destino (opcional)"
           fullWidth
           margin="dense"
           variant="outlined"
