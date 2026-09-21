@@ -253,6 +253,12 @@ export const runBuiltinIspSimulations = async (
       messages: ["oi", "1", "1", "12345678901"]
     },
     {
+      scenario: "fin_intent_boleto_cpf",
+      contactName: "Sim Fin Intent CPF",
+      contactNumber: "5511988001010",
+      messages: ["quero meu boleto", "52998224725"]
+    },
+    {
       scenario: "fin_desbloqueio",
       contactName: "Sim Fin Unlock",
       contactNumber: "5511988001002",
@@ -340,7 +346,7 @@ export const runBuiltinIspSimulations = async (
       scenario: "kw_boleto",
       contactName: "Sim KW Boleto",
       contactNumber: "5511988005001",
-      messages: ["boleto", "1", "52998224725"]
+      messages: ["boleto", "52998224725"]
     },
     {
       scenario: "humano",

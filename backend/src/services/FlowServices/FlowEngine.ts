@@ -13,6 +13,10 @@ import typebotListener from "../TypebotServices/typebotListener";
 import n8nService from "../n8nService/n8nService";
 import runIspAction from "../IspConnectorServices/runIspAction";
 import { logger } from "../../utils/logger";
+import {
+  bodyMatchesDocument,
+  parseDocumentDigits
+} from "./flowDocumentUtils";
 
 type Session = any;
 
@@ -47,12 +51,13 @@ type MenuOption = {
 };
 
 /** Tipos de conexão estilo Z-PRO Chat Flow */
-export type ConnectionKind = "auto" | "default" | "keyword" | "exact";
+export type ConnectionKind = "auto" | "default" | "keyword" | "exact" | "regex";
 
 export const parseEdgeKind = (condition?: string | null): {
   kind: ConnectionKind;
   keywords: string[];
   exact?: string;
+  regex?: string;
 } => {
   const c = String(condition || "").trim();
   if (!c || c === "default") return { kind: "default", keywords: [] };
@@ -67,6 +72,13 @@ export const parseEdgeKind = (condition?: string | null): {
         .filter(Boolean)
     };
   }
+  if (c.startsWith("regex:")) {
+    return {
+      kind: "regex",
+      keywords: [],
+      regex: c.replace(/^regex:/i, "").trim()
+    };
+  }
   return { kind: "exact", keywords: [], exact: c };
 };
 
@@ -74,6 +86,43 @@ const bodyMatchesKeywords = (body: string, keywords: string[]): boolean => {
   const text = String(body || "").trim().toLowerCase();
   if (!text || !keywords.length) return false;
   return keywords.some(k => k.length >= 1 && (text === k || text.includes(k)));
+};
+
+const bodyMatchesRegexEdge = (body: string, pattern: string): boolean => {
+  const p = String(pattern || "").trim().toLowerCase();
+  if (!p) return false;
+  if (p === "doc" || p === "cpf_cnpj" || p === "cpf" || p === "cnpj") {
+    return bodyMatchesDocument(body);
+  }
+  try {
+    return new RegExp(pattern, "i").test(String(body || "").trim());
+  } catch {
+    return false;
+  }
+};
+
+const applyDocumentShortcutVars = (
+  vars: Record<string, any>,
+  body: string,
+  varName = "cpf"
+) => {
+  const digits = parseDocumentDigits(body);
+  if (digits) vars[varName] = digits;
+};
+
+const advanceFromWaitingNode = async (
+  ticket: Ticket,
+  vars: Record<string, any>,
+  targetNodeKey: string,
+  nodes: FlowNode[],
+  menuAutoUsedRef: { value: boolean }
+) => {
+  delete vars._waiting;
+  await saveVars(ticket, vars);
+  menuAutoUsedRef.value = true;
+  const node = nodes.find(n => n.nodeKey === targetNodeKey);
+  await ticket.update({ flowNodeKey: targetNodeKey });
+  return node;
 };
 
 /** Casa número da opção, keywords ou trecho do rótulo (gatilhos). */
@@ -138,7 +187,8 @@ const findNext = (
   edges: FlowEdge[],
   sourceKey: string,
   bodyOrCondition?: string | null,
-  mode: "reply" | "autoOnly" | "exact" = "exact"
+  mode: "reply" | "autoOnly" | "exact" = "exact",
+  options?: { noFallback?: boolean }
 ): FlowEdge | undefined => {
   const fromSource = edges.filter(e => e.sourceNodeKey === sourceKey);
   if (!fromSource.length) return undefined;
@@ -169,6 +219,12 @@ const findNext = (
         bodyMatchesKeywords(String(bodyOrCondition), p.keywords)
     );
     if (asKw) return asKw.edge;
+    const asRegex = parsed.find(
+      p =>
+        p.kind === "regex" &&
+        bodyMatchesRegexEdge(String(bodyOrCondition), p.regex || "")
+    );
+    if (asRegex) return asRegex.edge;
   }
 
   if (mode === "reply") {
@@ -178,6 +234,11 @@ const findNext = (
     );
     if (kwHit) return kwHit.edge;
 
+    const regexHit = parsed.find(
+      p => p.kind === "regex" && bodyMatchesRegexEdge(body, p.regex || "")
+    );
+    if (regexHit) return regexHit.edge;
+
     const exactHit = parsed.find(
       p => p.kind === "exact" && p.exact === body.trim()
     );
@@ -185,7 +246,11 @@ const findNext = (
 
     const def = parsed.find(p => p.kind === "default");
     if (def) return def.edge;
+
+    if (options?.noFallback) return undefined;
   }
+
+  if (options?.noFallback) return undefined;
 
   return (
     parsed.find(p => p.kind === "default")?.edge ||
@@ -265,6 +330,7 @@ const runFlowEngine = async (
   const body = getBodyMessage(msg) || "";
   let vars = parseVars(ticket);
   // Evita que o mesmo texto (ex.: "1") selecione menu pai e submenu no mesmo turno
+  const menuAutoUsedRef = { value: false };
   let menuAutoUsed = false;
 
   vars.contactName = ticket.contact?.name || "";
@@ -302,43 +368,121 @@ const runFlowEngine = async (
 
     if (node.type === "input") {
       const varName = cfg.variable || "input";
-      vars[varName] = body.trim();
-      delete vars._waiting;
-      await saveVars(ticket, vars);
-      const next = findNext(edges, node.nodeKey, body, "reply") || findNext(edges, node.nodeKey);
-      if (!next) {
-        await clearFlowState(ticket);
-        return true;
+      const trimmed = body.trim();
+      const inputKind = cfg.inputKind || "text";
+      const replyNext = findNext(edges, node.nodeKey, body, "reply", {
+        noFallback: inputKind === "documentOrKeyword" || inputKind === "document"
+      });
+
+      if (replyNext) {
+        const edgeKind = parseEdgeKind(replyNext.condition);
+        if (edgeKind.kind === "keyword") {
+          vars[varName] = trimmed;
+          if (edgeKind.keywords.includes("novo")) vars.isNewLead = true;
+        } else if (edgeKind.kind === "regex") {
+          applyDocumentShortcutVars(vars, body, varName);
+        } else {
+          vars[varName] = trimmed;
+        }
+        node = await advanceFromWaitingNode(
+          ticket,
+          vars,
+          replyNext.targetNodeKey,
+          nodes,
+          menuAutoUsedRef
+        );
+        nodeKey = node?.nodeKey || replyNext.targetNodeKey;
+        menuAutoUsed = menuAutoUsedRef.value;
+      } else if (inputKind === "documentOrKeyword" || inputKind === "document") {
+        const digits = parseDocumentDigits(body);
+        if (!digits) {
+          await sendBotMessage({
+            body:
+              cfg.invalidMessage ||
+              "Informe um *CPF/CNPJ* válido ou digite *novo* se ainda não é cliente.",
+            ticket
+          });
+          return true;
+        }
+        vars[varName] = digits;
+        const docNext =
+          findNext(edges, node.nodeKey, body, "reply", { noFallback: true }) ||
+          findNext(edges, node.nodeKey, null, "autoOnly");
+        if (!docNext) {
+          await clearFlowState(ticket);
+          return true;
+        }
+        node = await advanceFromWaitingNode(
+          ticket,
+          vars,
+          docNext.targetNodeKey,
+          nodes,
+          menuAutoUsedRef
+        );
+        if (!node) {
+          await clearFlowState(ticket);
+          return true;
+        }
+        nodeKey = node.nodeKey;
+        menuAutoUsed = menuAutoUsedRef.value;
+      } else {
+        vars[varName] = trimmed;
+        delete vars._waiting;
+        await saveVars(ticket, vars);
+        const next =
+          findNext(edges, node.nodeKey, body, "reply") ||
+          findNext(edges, node.nodeKey);
+        if (!next) {
+          await clearFlowState(ticket);
+          return true;
+        }
+        nodeKey = next.targetNodeKey;
+        node = nodes.find(n => n.nodeKey === nodeKey);
+        await ticket.update({ flowNodeKey: nodeKey });
       }
-      nodeKey = next.targetNodeKey;
-      node = nodes.find(n => n.nodeKey === nodeKey);
-      await ticket.update({ flowNodeKey: nodeKey });
     } else if (node.type === "menu") {
       const options: MenuOption[] = cfg.options || [];
       const chosen = matchMenuOption(options, body);
       if (!chosen) {
-        await sendBotMessage({
-          body:
-            "Opção inválida. Digite o *número*, uma palavra-chave (ex.: boleto, internet, plano) ou *#sair*.",
-          ticket
+        const docShortcut = findNext(edges, node.nodeKey, body, "reply", {
+          noFallback: true
         });
-        return true;
+        if (docShortcut && parseEdgeKind(docShortcut.condition).kind === "regex") {
+          applyDocumentShortcutVars(vars, body, cfg.documentVariable || "cpf");
+          node = await advanceFromWaitingNode(
+            ticket,
+            vars,
+            docShortcut.targetNodeKey,
+            nodes,
+            menuAutoUsedRef
+          );
+          nodeKey = node?.nodeKey || docShortcut.targetNodeKey;
+          menuAutoUsed = menuAutoUsedRef.value;
+        } else {
+          await sendBotMessage({
+            body:
+              "Opção inválida. Digite o *número*, uma palavra-chave (ex.: boleto, internet, plano) ou *#sair*.",
+            ticket
+          });
+          return true;
+        }
+      } else {
+        delete vars._waiting;
+        vars.lastOption = chosen.option;
+        await saveVars(ticket, vars);
+        const next =
+          findNext(edges, node.nodeKey, chosen.option, "exact") ||
+          findNext(edges, node.nodeKey, body, "reply");
+        if (!next) {
+          await clearFlowState(ticket);
+          return true;
+        }
+        // Impede o submenu de reutilizar o mesmo dígito neste turno
+        menuAutoUsed = true;
+        nodeKey = next.targetNodeKey;
+        node = nodes.find(n => n.nodeKey === nodeKey);
+        await ticket.update({ flowNodeKey: nodeKey });
       }
-      delete vars._waiting;
-      vars.lastOption = chosen.option;
-      await saveVars(ticket, vars);
-      const next =
-        findNext(edges, node.nodeKey, chosen.option, "exact") ||
-        findNext(edges, node.nodeKey, body, "reply");
-      if (!next) {
-        await clearFlowState(ticket);
-        return true;
-      }
-      // Impede o submenu de reutilizar o mesmo dígito neste turno
-      menuAutoUsed = true;
-      nodeKey = next.targetNodeKey;
-      node = nodes.find(n => n.nodeKey === nodeKey);
-      await ticket.update({ flowNodeKey: nodeKey });
     } else if (node.type === "message" || node.type === "start") {
       const next = findNext(edges, node.nodeKey, body, "reply");
       if (!next) {

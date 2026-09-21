@@ -145,6 +145,7 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       message: "*Financeiro* — escolha:",
       config: {
         backTo: "menu_main",
+        documentVariable: "cpf",
         options: [
           opt("1", "2ª via / boleto", ["boleto", "2 via", "2ª via", "fatura"]),
           opt("2", "PIX", ["pix"]),
@@ -473,8 +474,22 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       type: "input",
       title: "CPF instalação",
       message: "Informe o *CPF* ou digite *novo* se ainda não é cliente:",
-      config: { variable: "cpf" },
+      config: {
+        variable: "cpf",
+        inputKind: "documentOrKeyword",
+        invalidMessage:
+          "Informe um *CPF/CNPJ* válido ou digite *novo* se ainda não é cliente."
+      },
       positionX: 1000,
+      positionY: 720
+    },
+    {
+      nodeKey: "com_install_novo",
+      type: "message",
+      title: "Lead novo",
+      message:
+        "Perfeito! Vamos cadastrar você como *novo cliente*.\nUm consultor comercial vai coletar nome, telefone e endereço para agendar a instalação.",
+      positionX: 1180,
       positionY: 720
     },
     {
@@ -633,6 +648,12 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
 
     // Financeiro
     { sourceNodeKey: "fin_menu", targetNodeKey: "fin_cpf", condition: "1", label: "Boleto" },
+    {
+      sourceNodeKey: "fin_menu",
+      targetNodeKey: "fin_lookup",
+      condition: "regex:doc",
+      label: "CPF/CNPJ direto"
+    },
     { sourceNodeKey: "fin_menu", targetNodeKey: "fin_cpf", condition: "2", label: "PIX" },
     { sourceNodeKey: "fin_menu", targetNodeKey: "fin_nego", condition: "3", label: "Negociar" },
     { sourceNodeKey: "fin_menu", targetNodeKey: "fin_unlock_cpf", condition: "4", label: "Desbloqueio" },
@@ -684,7 +705,24 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
     { sourceNodeKey: "com_coverage", targetNodeKey: "com_plans", condition: "false", label: "Sem cobertura" },
     { sourceNodeKey: "com_plans", targetNodeKey: "com_transfer", condition: "auto", label: "⚡ auto" },
     { sourceNodeKey: "com_upgrade", targetNodeKey: "com_transfer", condition: "auto", label: "⚡ auto" },
-    { sourceNodeKey: "com_install_cpf", targetNodeKey: "com_install", condition: "auto", label: "⚡ auto" },
+    {
+      sourceNodeKey: "com_install_cpf",
+      targetNodeKey: "com_install_novo",
+      condition: "kw:novo",
+      label: "Lead novo"
+    },
+    {
+      sourceNodeKey: "com_install_cpf",
+      targetNodeKey: "com_install",
+      condition: "regex:doc",
+      label: "CPF/CNPJ cliente"
+    },
+    {
+      sourceNodeKey: "com_install_novo",
+      targetNodeKey: "com_transfer",
+      condition: "auto",
+      label: "⚡ auto"
+    },
     { sourceNodeKey: "com_install", targetNodeKey: "com_transfer", condition: "auto", label: "⚡ auto" },
 
     // Serviços
