@@ -136,6 +136,26 @@ const isValidCpfCnpj = (raw: string): boolean => {
   return digits.length === 11 || digits.length === 14;
 };
 
+const buildProtocolo = (ticket: Ticket): string => `ISP-${ticket.id}`;
+
+const syncTicketVars = (ticket: Ticket, vars: Record<string, any>) => {
+  vars.protocolo = vars.protocolo || buildProtocolo(ticket);
+  vars.ticketId = ticket.id;
+};
+
+const isInputResetRequest = (
+  body: string,
+  cfg: Record<string, any>
+): boolean => {
+  const text = String(body || "").trim().toLowerCase();
+  const defaults = ["0", "esquecer", "esqueci", "esqueci o cpf", "esqueci cpf"];
+  const resetKeywords: string[] = cfg.resetKeywords || defaults;
+  return resetKeywords.some(k => {
+    const key = String(k).trim().toLowerCase();
+    return key.length >= 1 && (text === key || text.includes(key));
+  });
+};
+
 const buildListaContratos = (
   data: Record<string, any>,
   useAddressAsPlan?: boolean
@@ -307,17 +327,27 @@ const applyEndAction = async (
   if (!action || action === "none") return "continue";
 
   if (action === "transfer") {
+    syncTicketVars(ticket, vars);
     const queueId =
       cfg.endQueueId != null
         ? Number(cfg.endQueueId)
         : cfg.queueId != null
         ? Number(cfg.queueId)
         : null;
+    const dept = String(
+      cfg.departmentLabel || cfg.department || vars.departamento || ""
+    ).trim();
+    if (dept) vars.departamento = dept;
+
+    const defaultTransferMsg = dept
+      ? "Pode deixar! 😊\nVou encaminhar você para o *{{departamento}}* do seu provedor.\nAguarde só um pouquinho — já estamos chegando! 💙\n\n*Protocolo:* {{protocolo}}"
+      : "Pode deixar! 😊\nVou encaminhar você para um atendente do seu provedor.\nAguarde só um pouquinho — já estamos chegando! 💙\n\n*Protocolo:* {{protocolo}}";
+
     const transferMsg =
       cfg.endTransferMessage ||
       cfg.explainedMessage ||
       cfg.message ||
-      "Estou transferindo seu atendimento. Aguarde um momento.";
+      defaultTransferMsg;
     if (transferMsg) {
       await sendBotMessage({ body: render(transferMsg, vars), ticket });
     }
@@ -402,6 +432,7 @@ const runFlowEngine = async (
   vars.contactName = ticket.contact?.name || "";
   vars.contactNumber = ticket.contact?.number || "";
   vars.body = body;
+  syncTicketVars(ticket, vars);
 
   // Comandos globais
   if (body === "#" || body.toLowerCase() === "#sair") {
@@ -435,35 +466,53 @@ const runFlowEngine = async (
     if (node.type === "input") {
       const varName = cfg.variable || "input";
       const trimmed = body.trim();
-      if (
+
+      if (isInputResetRequest(trimmed, cfg)) {
+        delete vars.cpf;
+        delete vars.document;
+        delete vars._waiting;
+        await saveVars(ticket, vars);
+        const resetTo =
+          cfg.resetTo || cfg.backTo || "menu_main";
+        nodeKey = resetTo;
+        node = nodes.find(n => n.nodeKey === nodeKey);
+        if (!node) {
+          await clearFlowState(ticket);
+          return true;
+        }
+        await ticket.update({ flowNodeKey: nodeKey });
+      } else if (
         (varName === "cpf" || varName === "document") &&
         !isValidCpfCnpj(trimmed)
       ) {
         await sendBotMessage({
           body: render(
             cfg.invalidIdMessage ||
-              "Opss. por favor informe um *CPF/CNPJ* válido",
+              "⚠️ CPF/CNPJ inválido. Informe *11 dígitos* (CPF) ou *14* (CNPJ).\n\n*0* ou *esquecer* — voltar ao menu.",
             vars
           ),
           ticket
         });
         return true;
+      } else {
+        vars[varName] = trimmed;
+        if (varName === "cpf" || varName === "document") {
+          vars.cpf = trimmed.replace(/\D/g, "");
+          vars.document = vars.cpf;
+        }
+        delete vars._waiting;
+        await saveVars(ticket, vars);
+        const next =
+          findNext(edges, node.nodeKey, body, "reply") ||
+          findNext(edges, node.nodeKey);
+        if (!next) {
+          await clearFlowState(ticket);
+          return true;
+        }
+        nodeKey = next.targetNodeKey;
+        node = nodes.find(n => n.nodeKey === nodeKey);
+        await ticket.update({ flowNodeKey: nodeKey });
       }
-      vars[varName] = trimmed;
-      if (varName === "cpf" || varName === "document") {
-        vars.cpf = trimmed.replace(/\D/g, "");
-        vars.document = vars.cpf;
-      }
-      delete vars._waiting;
-      await saveVars(ticket, vars);
-      const next = findNext(edges, node.nodeKey, body, "reply") || findNext(edges, node.nodeKey);
-      if (!next) {
-        await clearFlowState(ticket);
-        return true;
-      }
-      nodeKey = next.targetNodeKey;
-      node = nodes.find(n => n.nodeKey === nodeKey);
-      await ticket.update({ flowNodeKey: nodeKey });
     } else if (node.type === "menu") {
       const options: MenuOption[] = cfg.options || [];
       const chosen = matchMenuOption(options, body);
@@ -722,6 +771,12 @@ const runFlowEngine = async (
         if (msg) {
           await sendBotMessage({ body: render(msg, vars), ticket });
         }
+        if (result.ok && cfg.outcomeMessage) {
+          await sendBotMessage({
+            body: render(cfg.outcomeMessage, vars),
+            ticket
+          });
+        }
         // Quark: após sucesso (closed_finish) ou end_action configurado
         if (
           result.ok &&
@@ -750,10 +805,12 @@ const runFlowEngine = async (
       }
 
       case "transfer": {
+        syncTicketVars(ticket, vars);
         const transferCfg = {
           ...cfg,
           endAction: "transfer",
           endQueueId: cfg.endQueueId ?? cfg.queueId,
+          departmentLabel: cfg.departmentLabel || cfg.department,
           endTransferMessage:
             cfg.endTransferMessage ||
             cfg.explainedMessage ||
