@@ -24,11 +24,13 @@ type EdgeDef = {
 const opt = (
   option: string,
   label: string,
-  keywords: string[]
-): { option: string; label: string; keywords: string[] } => ({
+  keywords: string[],
+  icon?: string
+): { option: string; label: string; keywords: string[]; icon?: string } => ({
   option,
   label,
-  keywords: Array.from(new Set([option, ...keywords]))
+  keywords: Array.from(new Set([option, ...keywords])),
+  ...(icon ? { icon } : {})
 });
 
 export const buildMasterAtendimentoFlow = (companyId: number) => {
@@ -77,8 +79,9 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       message: "*Como posso ajudar?*",
       config: {
         backTo: "menu_main",
+        interactiveMode: "auto",
         options: [
-          opt("1", "💰 Financeiro (boleto / PIX / desbloqueio)", [
+          opt("1", "Financeiro (boleto / PIX / desbloqueio)", [
             "financeiro",
             "boleto",
             "2 via",
@@ -88,8 +91,8 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
             "pagar",
             "desbloqueio",
             "negociar"
-          ]),
-          opt("2", "🛠️ Suporte técnico (internet / OS / visita)", [
+          ], "💰"),
+          opt("2", "Suporte técnico (internet / OS / visita)", [
             "tecnico",
             "técnico",
             "suporte",
@@ -100,8 +103,8 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
             "lenta",
             "wifi",
             "visita"
-          ]),
-          opt("3", "🛒 Comercial (CEP / planos / instalação)", [
+          ], "🛠️"),
+          opt("3", "Comercial (CEP / planos / instalação)", [
             "comercial",
             "plano",
             "planos",
@@ -111,8 +114,8 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
             "upgrade",
             "instalação",
             "instalacao"
-          ]),
-          opt("4", "📋 Meus serviços (contrato / endereço / cancelar)", [
+          ], "🛒"),
+          opt("4", "Meus serviços (contrato / endereço / cancelar)", [
             "servicos",
             "serviços",
             "contrato",
@@ -123,14 +126,14 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
             "mudanca",
             "mudança",
             "anatel"
-          ]),
-          opt("5", "👤 Falar com atendente", [
+          ], "📋"),
+          opt("5", "Falar com atendente", [
             "humano",
             "atendente",
             "pessoa",
             "falar",
             "operador"
-          ])
+          ], "👤")
         ]
       },
       positionX: 520,
@@ -145,29 +148,30 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       message: "*Financeiro* — escolha:",
       config: {
         backTo: "menu_main",
+        interactiveMode: "auto",
         options: [
-          opt("1", "2ª via / boleto", ["boleto", "2 via", "2ª via", "fatura"]),
-          opt("2", "PIX", ["pix"]),
+          opt("1", "2ª via / boleto", ["boleto", "2 via", "2ª via", "fatura"], "📄"),
+          opt("2", "PIX", ["pix"], "💸"),
           opt("3", "Negociar pendência", [
             "negociar",
             "acordo",
             "divida",
             "dívida"
-          ]),
+          ], "🤝"),
           opt("4", "Desbloqueio após pagamento", [
             "desbloqueio",
             "desbloquear",
             "liberar",
             "bloqueado"
-          ]),
+          ], "🔓"),
           opt("5", "Já paguei / confirmar pagamento", [
             "ja paguei",
             "já paguei",
             "paguei",
             "comprovante",
             "confirmar"
-          ]),
-          opt("0", "Voltar ao menu", ["voltar", "menu"])
+          ], "✅"),
+          opt("0", "Voltar ao menu", ["voltar", "menu"], "↩️")
         ]
       },
       positionX: 40,
@@ -269,17 +273,18 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       message: "*Suporte técnico* — o que está acontecendo?",
       config: {
         backTo: "menu_main",
+        interactiveMode: "auto",
         options: [
-          opt("1", "Sem internet", ["sem internet", "caiu", "offline"]),
-          opt("2", "Internet lenta", ["lenta", "lento", "velocidade"]),
-          opt("3", "Senha / Wi-Fi", ["wifi", "wi-fi", "senha", "roteador"]),
+          opt("1", "Sem internet", ["sem internet", "caiu", "offline"], "📵"),
+          opt("2", "Internet lenta", ["lenta", "lento", "velocidade"], "🐢"),
+          opt("3", "Senha / Wi-Fi", ["wifi", "wi-fi", "senha", "roteador"], "📶"),
           opt("4", "Agendar visita técnica", [
             "visita",
             "agendar",
             "tecnico em casa"
-          ]),
-          opt("5", "Abrir OS / outro problema", ["os", "ordem", "outro"]),
-          opt("0", "Voltar ao menu", ["voltar", "menu"])
+          ], "🔧"),
+          opt("5", "Abrir OS / outro problema", ["os", "ordem", "outro"], "📝"),
+          opt("0", "Voltar ao menu", ["voltar", "menu"], "↩️")
         ]
       },
       positionX: 420,
@@ -292,14 +297,15 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       message: "Qual a cor da luz da *ONU/roteador*?",
       config: {
         backTo: "tec_menu",
+        interactiveMode: "auto",
         options: [
-          opt("1", "Verde fixa", ["verde"]),
+          opt("1", "Verde fixa", ["verde"], "🟢"),
           opt("2", "Vermelha / piscando", [
             "vermelha",
             "vermelho",
             "piscando"
-          ]),
-          opt("3", "Apagada", ["apagada", "sem luz"])
+          ], "🔴"),
+          opt("3", "Apagada", ["apagada", "sem luz"], "⚫")
         ]
       },
       positionX: 280,
@@ -347,10 +353,11 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       message: "Como prefere seguir?",
       config: {
         backTo: "tec_menu",
+        interactiveMode: "auto",
         options: [
-          opt("1", "Abrir OS para redefinir senha", ["os", "redefinir"]),
-          opt("2", "Agendar visita", ["visita", "agendar"]),
-          opt("0", "Voltar", ["voltar", "menu"])
+          opt("1", "Abrir OS para redefinir senha", ["os", "redefinir"], "📝"),
+          opt("2", "Agendar visita", ["visita", "agendar"], "🔧"),
+          opt("0", "Voltar", ["voltar", "menu"], "↩️")
         ]
       },
       positionX: 560,
@@ -416,26 +423,27 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       message: "*Comercial* — o que deseja?",
       config: {
         backTo: "menu_main",
+        interactiveMode: "auto",
         options: [
           opt("1", "Viabilidade por CEP", [
             "viabilidade",
             "cep",
             "cobertura"
-          ]),
+          ], "📍"),
           opt("2", "Ver planos / contratar", [
             "plano",
             "planos",
             "contratar",
             "preço",
             "preco"
-          ]),
-          opt("3", "Upgrade de plano", ["upgrade", "aumentar"]),
+          ], "📦"),
+          opt("3", "Upgrade de plano", ["upgrade", "aumentar"], "⬆️"),
           opt("4", "Agendar instalação", [
             "instalação",
             "instalacao",
             "agendar instalação"
-          ]),
-          opt("0", "Voltar ao menu", ["voltar", "menu"])
+          ], "🏠"),
+          opt("0", "Voltar ao menu", ["voltar", "menu"], "↩️")
         ]
       },
       positionX: 900,
@@ -511,27 +519,28 @@ export const buildMasterAtendimentoFlow = (companyId: number) => {
       message: "*Meus serviços* — escolha:",
       config: {
         backTo: "menu_main",
+        interactiveMode: "auto",
         options: [
           opt("1", "Dados do contrato", [
             "contrato",
             "dados",
             "meu plano",
             "status"
-          ]),
+          ], "📄"),
           opt("2", "Mudança de endereço", [
             "mudanca",
             "mudança",
             "endereco",
             "endereço",
             "mudar"
-          ]),
+          ], "🏠"),
           opt("3", "Cancelamento / retenção", [
             "cancelar",
             "cancelamento",
             "rescindir"
-          ]),
-          opt("4", "Reclamação / ANATEL", ["anatel", "reclamação", "reclamacao"]),
-          opt("0", "Voltar ao menu", ["voltar", "menu"])
+          ], "❌"),
+          opt("4", "Reclamação / ANATEL", ["anatel", "reclamação", "reclamacao"], "📣"),
+          opt("0", "Voltar ao menu", ["voltar", "menu"], "↩️")
         ]
       },
       positionX: 520,

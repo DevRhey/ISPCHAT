@@ -353,11 +353,37 @@ const FlowNodeInspector = ({
 
       {data.nodeType === "menu" && (
         <div className={classes.section}>
-          <Typography variant="subtitle2" gutterBottom>
+          <FormControl fullWidth margin="dense" variant="outlined">
+            <InputLabel>Modo interativo</InputLabel>
+            <Select
+              label="Modo interativo"
+              value={config.interactiveMode || "auto"}
+              onChange={e => patchConfig({ interactiveMode: e.target.value })}
+            >
+              <MenuItem value="auto">Automático (≤3 botões / &gt;3 lista)</MenuItem>
+              <MenuItem value="buttons">Sempre botões (máx 3)</MenuItem>
+              <MenuItem value="list">Sempre lista</MenuItem>
+              <MenuItem value="text">Somente texto numerado</MenuItem>
+            </Select>
+          </FormControl>
+          <Typography variant="subtitle2" gutterBottom style={{ marginTop: 12 }}>
             Opções do menu
           </Typography>
           {options.map((opt, idx) => (
-            <div key={idx} className={classes.optionRow}>
+            <div key={idx} className={classes.optionRow} style={{ flexWrap: "wrap" }}>
+              <TextField
+                label="Ícone"
+                variant="outlined"
+                margin="dense"
+                style={{ width: 64 }}
+                value={opt.icon || ""}
+                placeholder="🔧"
+                onChange={e => {
+                  const next = [...options];
+                  next[idx] = { ...opt, icon: e.target.value };
+                  patchConfig({ options: next });
+                }}
+              />
               <TextField
                 label="#"
                 variant="outlined"
@@ -421,6 +447,7 @@ const FlowNodeInspector = ({
                   {
                     option: String(options.length + 1),
                     label: `Opção ${options.length + 1}`,
+                    icon: "",
                     keywords: []
                   }
                 ]
@@ -431,7 +458,7 @@ const FlowNodeInspector = ({
           </Button>
           <Divider style={{ margin: "12px 0" }} />
           <Typography variant="caption" color="textSecondary">
-            Ligue cada opção com conexão <strong>Exato</strong> = número (ex.: 1).
+            Ícone: emoji exibido no botão/lista (ex.: 💰 🛠️). Ligue cada opção com conexão <strong>Exato</strong> = número (ex.: 1).
           </Typography>
         </div>
       )}

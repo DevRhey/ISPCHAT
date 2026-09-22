@@ -104,10 +104,11 @@ export const defaultConfigForType = type => {
       };
     case "menu":
       return {
+        interactiveMode: "auto",
         options: [
-          { option: "1", label: "Opção 1", keywords: ["1"] },
-          { option: "2", label: "Opção 2", keywords: ["2"] },
-          { option: "0", label: "Voltar", keywords: ["0", "voltar", "menu"] }
+          { option: "1", label: "Opção 1", icon: "", keywords: ["1"] },
+          { option: "2", label: "Opção 2", icon: "", keywords: ["2"] },
+          { option: "0", label: "Voltar", icon: "↩️", keywords: ["0", "voltar", "menu"] }
         ],
         backTo: "menu_main"
       };

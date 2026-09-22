@@ -8,6 +8,7 @@ import FlowEdge from "../../models/FlowEdge";
 import QueueIntegrations from "../../models/QueueIntegrations";
 import Queue from "../../models/Queue";
 import SendWhatsAppMessage from "../WbotServices/SendWhatsAppMessage";
+import SendInteractiveMenuMessage, { InteractiveMode } from "../WbotServices/SendInteractiveMenuMessage";
 import UpdateTicketService from "../TicketServices/UpdateTicketService";
 import typebotListener from "../TypebotServices/typebotListener";
 import n8nService from "../n8nService/n8nService";
@@ -41,9 +42,72 @@ const sendBotMessage = async (params: {
 
 const MAX_STEPS = 24;
 
+/** Constrói o texto numerado do menu (body de fallback). */
+const buildMenuText = (
+  headerText: string,
+  options: MenuOption[]
+): string => {
+  const lines = options.map(o => {
+    const icon = o.icon ? `${o.icon} ` : "";
+    return `${o.option} - ${icon}${o.label}`;
+  });
+  return [
+    headerText,
+    ...lines,
+    "",
+    "_Dica:_ digite o número, palavra-chave, *0* para voltar ou *#sair*."
+  ].join("\n");
+};
+
+/**
+ * Envia mensagem do nó menu: interativa (botões/lista) quando o canal suporta,
+ * com fallback numérico sempre incluído no body para canais sem suporte.
+ */
+const sendMenuMessage = async (params: {
+  cfg: Record<string, any>;
+  node: any;
+  options: MenuOption[];
+  vars: Record<string, any>;
+  ticket: Ticket;
+  wbot: any;
+}): Promise<void> => {
+  const { cfg, node, options, vars, ticket, wbot } = params;
+
+  let text = render(node.message || "", vars);
+  if (!text) text = "Escolha uma opção:";
+
+  const body = buildMenuText(text, options);
+
+  // Simulação ou modo texto explícito: apenas texto
+  const interactiveMode = (cfg.interactiveMode || "auto") as InteractiveMode;
+  if (flowMessageSenderOverride || interactiveMode === "text") {
+    await sendBotMessage({ body, ticket });
+    return;
+  }
+
+  // Tenta interativo; falha silenciosa = texto
+  try {
+    const result = await SendInteractiveMenuMessage({
+      ticket,
+      body,
+      options,
+      interactiveMode,
+      wbotSession: wbot
+    });
+    // Se retornou null, o helper já logou o motivo; enviamos texto como segurança
+    if (!result) {
+      await sendBotMessage({ body, ticket });
+    }
+  } catch (err) {
+    logger.warn({ err }, "FlowEngine sendMenuMessage: fallback texto");
+    await sendBotMessage({ body, ticket });
+  }
+};
+
 type MenuOption = {
   option: string;
   label: string;
+  icon?: string;
   keywords?: string[];
 };
 
@@ -581,18 +645,7 @@ const runFlowEngine = async (
           }
         }
 
-        let text = render(node.message || "", vars);
-        if (!text) text = "Escolha uma opção:";
-        const lines = options.map(o => `${o.option} - ${o.label}`);
-        await sendBotMessage({
-          body: [
-            text,
-            ...lines,
-            "",
-            "_Dica:_ digite o número, palavra-chave, *0* para voltar ou *#sair*."
-          ].join("\n"),
-          ticket
-        });
+        await sendMenuMessage({ cfg, node, options, vars, ticket, wbot });
         vars._waiting = node.nodeKey;
         await saveVars(ticket, vars);
         await ticket.update({ flowNodeKey: node.nodeKey });
