@@ -1,0 +1,147 @@
+.v2-ticket-card {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  width: calc(100% - 32px);
+  margin: 0 var(--spacing-md) var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background: var(--surface);
+  border: none;
+  border-radius: var(--radius-md);
+  box-shadow: 0 1px 3px var(--chat-shadow);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+  min-height: 96px;
+}
+
+.v2-ticket-card:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.v2-ticket-card.selected {
+  background: var(--chat-primary);
+  color: #fff;
+}
+
+.v2-ticket-card.selected .v2-ticket-preview,
+.v2-ticket-card.selected .v2-ticket-time,
+.v2-ticket-card.selected .v2-ticket-star {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.v2-ticket-card.selected .v2-ticket-dept {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-color: transparent;
+}
+
+.v2-ticket-accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: var(--accent-purple);
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+.v2-ticket-avatar {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  margin-left: 8px;
+  margin-right: var(--spacing-sm);
+  overflow: hidden;
+}
+
+.v2-ticket-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.v2-ticket-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.v2-ticket-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.v2-ticket-name {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-ticket-time {
+  font-size: 11px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.v2-ticket-preview {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v2-ticket-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.v2-ticket-star {
+  color: var(--muted-light);
+}
+
+.v2-ticket-whatsapp {
+  font-size: 12px;
+}
+
+.v2-ticket-dept {
+  margin-left: auto;
+  font-size: 10px;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  background: var(--surface);
+}
+
+.v2-ticket-unread {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

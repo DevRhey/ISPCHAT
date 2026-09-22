@@ -1,0 +1,162 @@
+.context-panel {
+  width: var(--context-panel-width);
+  min-width: var(--context-panel-width);
+  background: var(--page-blue);
+  padding: var(--spacing-sm);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.context-card {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  box-shadow: 0 1px 3px var(--chat-shadow);
+}
+
+.context-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 var(--spacing-sm);
+  color: var(--text);
+}
+
+.context-client-header {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.context-client-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #fff;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.context-client-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.context-client-name {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text);
+}
+
+.context-client-phone {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 2px 0 0;
+}
+
+.context-field {
+  margin-bottom: var(--spacing-sm);
+}
+
+.context-field label {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+.context-field span {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.context-select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.context-notes {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.context-notes::placeholder {
+  color: var(--muted-light);
+}
+
+.context-recurrence {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  box-shadow: 0 1px 3px var(--chat-shadow);
+}
+
+.context-recurrence-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--success);
+  background: rgba(34, 197, 94, 0.15);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.context-recurrence-desc {
+  font-size: 12px;
+  color: var(--muted);
+  margin: var(--spacing-xs) 0;
+}
+
+.context-recurrence-bars {
+  display: flex;
+  gap: 4px;
+}
+
+.context-recurrence-bars .bar {
+  flex: 1;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.context-recurrence-bars .bar.active {
+  background: var(--success);
+}
+
+.context-channel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.context-stub {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+}
+
+@media (max-width: 1024px) {
+  .context-panel {
+    position: fixed;
+    right: var(--context-rail-width);
+    top: 0;
+    bottom: 0;
+    z-index: 15;
+    box-shadow: -4px 0 12px var(--chat-shadow);
+  }
+}

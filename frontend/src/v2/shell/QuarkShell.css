@@ -1,0 +1,73 @@
+.quark-shell-rail {
+  overflow: hidden;
+}
+
+.quark-shell-nav-section {
+  flex: 0 0 auto;
+}
+
+.quark-shell-divider {
+  width: 70%;
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+.quark-shell-gestao-scroll {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  width: 100%;
+}
+
+.gestao-page-fill {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.gestao-page-fill .gestao-v2-body {
+  flex: 1;
+  overflow: auto;
+}
+
+.quark-shell-notifications {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.quark-shell-notifications .MuiIconButton-root {
+  color: var(--muted) !important;
+}
+
+.chat-shell-user-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding-top: 8px;
+}
+
+.quark-shell-gestao-link {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  margin-top: 4px;
+  width: 100%;
+  color: var(--muted) !important;
+}
+
+/* Quark tokens on legacy MUI admin pages inside gestão */
+.gestao-v2-body .MuiPaper-root {
+  border-radius: var(--radius-md) !important;
+  box-shadow: 0 1px 3px var(--chat-shadow) !important;
+}
+
+.gestao-v2-body .MuiButton-containedPrimary {
+  background-color: var(--chat-primary) !important;
+}
+
+.gestao-v2-body .MuiTabs-indicator {
+  background-color: var(--chat-primary) !important;
+}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, createContext } from "react";
 import { useHistory } from "react-router-dom";
+import { v2TicketPath } from "../../helpers/v2Paths";
 
 const TicketsContext = createContext();
 
@@ -9,7 +10,7 @@ const TicketsContextProvider = ({ children }) => {
 
     useEffect(() => {
         if (currentTicket.id !== null && currentTicket.uuid !== undefined) {
-            history.push(`/tickets/${currentTicket.uuid}`);
+            history.push(v2TicketPath(currentTicket));
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentTicket])

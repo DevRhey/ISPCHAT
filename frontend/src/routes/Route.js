@@ -3,10 +3,11 @@ import { Route as RouterRoute, Redirect } from "react-router-dom";
 
 import { AuthContext } from "../context/Auth/AuthContext";
 import BackdropLoading from "../components/BackdropLoading";
+import { v2ChatDashboardPath, v2ChatPath } from "../helpers/v2Paths";
 
 const PUBLIC_AUTH_PATHS = ["/", "/home", "/login", "/signup", "/forgetpsw", "/termos"];
 
-const Route = ({ component: Component, isPrivate = false, ...rest }) => {
+const Route = ({ component: Component, render: renderProp, isPrivate = false, ...rest }) => {
 	const { isAuth, loading } = useContext(AuthContext);
 
 	return (
@@ -29,7 +30,7 @@ const Route = ({ component: Component, isPrivate = false, ...rest }) => {
 					return (
 						<>
 							{loading && <BackdropLoading />}
-							<Redirect to={{ pathname: "/app", state: { from: location } }} />
+							<Redirect to={{ pathname: v2ChatDashboardPath(), state: { from: location } }} />
 						</>
 					);
 				}
@@ -43,10 +44,22 @@ const Route = ({ component: Component, isPrivate = false, ...rest }) => {
 					return (
 						<>
 							{loading && <BackdropLoading />}
-							<Redirect to="/app" />
+							<Redirect to={v2ChatPath()} />
 						</>
 					);
 				}
+
+				// Prefer render prop over component prop
+				if (renderProp) {
+					return (
+						<>
+							{loading && <BackdropLoading />}
+							{renderProp(routeProps)}
+						</>
+					);
+				}
+
+				if (!Component) return loading ? <BackdropLoading /> : null;
 
 				return (
 					<>

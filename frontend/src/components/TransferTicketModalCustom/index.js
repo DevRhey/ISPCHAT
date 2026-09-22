@@ -24,6 +24,7 @@ import ButtonWithSpinner from "../ButtonWithSpinner";
 import toastError from "../../errors/toastError";
 import useQueues from "../../hooks/useQueues";
 import { AuthContext } from "../../context/Auth/AuthContext";
+import { v2TicketsListPath } from "../../helpers/v2Paths";
 
 const useStyles = makeStyles((theme) => ({
   maxWidth: {
@@ -149,7 +150,7 @@ const TransferTicketModalCustom = ({ modalOpen, onClose, ticketid }) => {
       }
       await api.put(`/tickets/${ticketid}`, data);
 
-      history.push(`/tickets`);
+      history.push(v2TicketsListPath());
     } catch (err) {
       setLoading(false);
       toastError(err);

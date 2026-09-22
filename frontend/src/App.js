@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 
 import "react-toastify/dist/ReactToastify.css";
+import "./v2/theme/quarkTheme.css";
 import { QueryClient, QueryClientProvider } from "react-query";
 import lightBackground from '../src/assets/wa-background-light.png';
 import darkBackground from '../src/assets/wa-background-dark.jpg';

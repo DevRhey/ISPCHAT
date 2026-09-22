@@ -1,0 +1,152 @@
+.attendance-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  flex: 1;
+  overflow: hidden;
+}
+
+.attendance-board-loading {
+  padding: var(--spacing-lg);
+  text-align: center;
+  color: var(--muted);
+}
+
+.attendance-column {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 400px;
+}
+
+.attendance-column-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--border);
+}
+
+.attendance-column-icon {
+  color: var(--chat-primary);
+}
+
+.attendance-column-title {
+  font-size: 14px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.attendance-column-badge {
+  background: var(--chat-primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.attendance-column-body {
+  flex: 1;
+  padding: var(--spacing-sm);
+  overflow-y: auto;
+}
+
+.attendance-empty {
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  padding: var(--spacing-lg);
+}
+
+.attendance-board-card {
+  position: relative;
+  display: flex;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  box-shadow: 0 1px 2px var(--chat-shadow);
+  min-height: 120px;
+  overflow: hidden;
+}
+
+.attendance-board-accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+}
+
+.attendance-board-avatar {
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #fff;
+  margin-left: 8px;
+  overflow: hidden;
+}
+
+.attendance-board-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.attendance-board-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.attendance-board-name {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.attendance-board-preview {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 4px 0;
+}
+
+.attendance-board-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 11px;
+}
+
+.attendance-board-tag {
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+}
+
+.attendance-board-agent {
+  color: var(--chat-primary);
+}
+
+@media (max-width: 1024px) {
+  .attendance-board {
+    grid-template-columns: 1fr;
+  }
+}

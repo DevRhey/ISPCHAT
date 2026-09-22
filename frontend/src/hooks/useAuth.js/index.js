@@ -202,7 +202,7 @@ const useAuth = () => {
             } `
           );
         }
-        history.push("/tickets");
+        history.push("/v2/chat/andamento");
         setLoading(false);
       } else {
         toastError(`Opss! Sua assinatura venceu ${vencimento}.
