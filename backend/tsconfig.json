@@ -12,5 +12,5 @@
     "forceConsistentCasingInFileNames": true,
 	"types": ["node"]
   },
-    "exclude": ["public"]
+    "exclude": ["public", "**/__tests__/**", "**/*.test.ts", "**/*.spec.ts"]
 }

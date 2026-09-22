@@ -1,0 +1,5 @@
+{
+  "name": "ISPCHAT (Whaticket + LangGraph)",
+  "install": "bash scripts/cloud-agent-install.sh",
+  "start": "bash scripts/cloud-agent-start.sh"
+}
