@@ -29,3 +29,27 @@ if [ -f "$ROOT/backend/dist/config/database.js" ]; then
 fi
 
 echo "Datastores ready (PostgreSQL:5432, Redis:6379)."
+
+# --- Launch dev servers, fully detached, idempotent by port ---
+# setsid + </dev/null detaches from this script's session so `start` returns
+# promptly while the servers keep running for the lifetime of the container.
+NODE20_DIR="${NODE20_BIN:-}"
+# Backend API (:8080)
+if ! curl -sf http://127.0.0.1:8080/health >/dev/null 2>&1; then
+  setsid bash -c "export PATH=\"$NODE20_DIR:\$PATH\"; cd '$ROOT/backend'; \
+      exec node --max-old-space-size=3072 dist/server.js" \
+      </dev/null >/tmp/ispchat-backend.log 2>&1 &
+  echo "Backend starting on :8080 (logs: /tmp/ispchat-backend.log)"
+else
+  echo "Backend already running on :8080"
+fi
+
+# Frontend CRA dev server (:3000)
+if ! curl -sf http://127.0.0.1:3000 >/dev/null 2>&1; then
+  setsid bash -c "export PATH=\"$NODE20_DIR:\$PATH\" BROWSER=none NODE_OPTIONS=--max-old-space-size=4096; \
+      cd '$ROOT/frontend'; exec npm start" \
+      </dev/null >/tmp/ispchat-frontend.log 2>&1 &
+  echo "Frontend starting on :3000 (logs: /tmp/ispchat-frontend.log)"
+else
+  echo "Frontend already running on :3000"
+fi
