@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
-# Idempotent repository bootstrap for the ISPCHAT Cloud Agent environment.
-# System packages (Node 20 via nvm, PostgreSQL, Redis, ffmpeg) live in the base
-# snapshot; this script only prepares the checked-out repository.
+# Self-contained, idempotent bootstrap for the ISPCHAT Cloud Agent environment.
+# Installs system dependencies (Node 20, PostgreSQL, Redis, ffmpeg), provisions
+# the database, installs app dependencies, builds the backend, and runs
+# migrations/seeds. Safe to re-run.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # --- Node 20 (Baileys 7 requires Node >=20 <21). /exec-daemon/node is Node 22,
-# so we must prepend the nvm Node 20 bin dir to PATH. ---
+# so we prepend the nvm Node 20 bin dir to PATH. ---
 export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 # shellcheck disable=SC1091
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
@@ -20,19 +21,33 @@ echo "Using Node $(node -v) / npm $(npm -v)"
 # heavy Chromium download during install.
 export PUPPETEER_SKIP_DOWNLOAD=true
 
-# --- Ensure PostgreSQL + Redis are running and provisioned ---
-sudo pg_ctlcluster 16 main start 2>/dev/null || sudo service postgresql start 2>/dev/null || true
-sudo service redis-server start 2>/dev/null || true
+# --- System packages (idempotent) ---
+if ! command -v psql >/dev/null 2>&1 || ! command -v redis-server >/dev/null 2>&1 || ! command -v ffmpeg >/dev/null 2>&1; then
+  echo "Installing system packages (postgresql, redis-server, ffmpeg)..."
+  sudo apt-get update -qq
+  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    postgresql postgresql-contrib redis-server ffmpeg
+fi
+
+# Detect the installed PostgreSQL cluster version (e.g. 16)
+PG_VER="$(ls /etc/postgresql 2>/dev/null | sort -n | tail -1 || true)"
+
+# --- Start PostgreSQL + Redis ---
+if [ -n "$PG_VER" ]; then
+  sudo pg_ctlcluster "$PG_VER" main start 2>/dev/null || sudo service postgresql start 2>/dev/null || true
+else
+  sudo service postgresql start 2>/dev/null || true
+fi
 
 # Configure Redis password (idempotent)
 if ! sudo grep -q '^requirepass whaticket' /etc/redis/redis.conf 2>/dev/null; then
   sudo sed -i 's/^# *requirepass .*/requirepass whaticket/; s/^requirepass .*/requirepass whaticket/' /etc/redis/redis.conf || true
   sudo grep -q '^requirepass whaticket' /etc/redis/redis.conf 2>/dev/null || \
     echo 'requirepass whaticket' | sudo tee -a /etc/redis/redis.conf >/dev/null
-  sudo service redis-server restart 2>/dev/null || true
 fi
+sudo service redis-server restart 2>/dev/null || sudo service redis-server start 2>/dev/null || true
 
-# Ensure DB role + database
+# --- Ensure DB role + database exist ---
 sudo -u postgres psql -tc "SELECT 1 FROM pg_roles WHERE rolname='whaticket'" | grep -q 1 || \
   sudo -u postgres psql -c "CREATE ROLE whaticket LOGIN PASSWORD 'whaticket' CREATEDB;"
 sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='whaticket'" | grep -q 1 || \

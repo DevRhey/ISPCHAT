@@ -13,7 +13,12 @@ NODE20_BIN="$(dirname "$(nvm which 20 2>/dev/null)" 2>/dev/null || true)"
 [ -n "$NODE20_BIN" ] && export PATH="$NODE20_BIN:$PATH"
 
 # Start datastores (idempotent)
-sudo pg_ctlcluster 16 main start 2>/dev/null || sudo service postgresql start 2>/dev/null || true
+PG_VER="$(ls /etc/postgresql 2>/dev/null | sort -n | tail -1 || true)"
+if [ -n "$PG_VER" ]; then
+  sudo pg_ctlcluster "$PG_VER" main start 2>/dev/null || sudo service postgresql start 2>/dev/null || true
+else
+  sudo service postgresql start 2>/dev/null || true
+fi
 sudo service redis-server start 2>/dev/null || true
 
 # Wait for PostgreSQL to accept connections
