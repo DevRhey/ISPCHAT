@@ -39,7 +39,7 @@ const Routes = () => {
               <WhatsAppsProvider>
                 <Route
                   path="/"
-                  render={() => <QuarkApp showCampaigns={showCampaigns} />}
+                  component={() => <QuarkApp showCampaigns={showCampaigns} />}
                   isPrivate
                 />
               </WhatsAppsProvider>
