@@ -11,6 +11,7 @@ import V2ChatInboxPage from "./pages/V2ChatInboxPage";
 import V2ChatDashboardPage from "./pages/V2ChatDashboardPage";
 import V2ClientesPage from "./pages/V2ClientesPage";
 
+import AjustesHub from "../pages/AjustesHub";
 import Connections from "../pages/Connections";
 import SettingsCustom from "../pages/SettingsCustom";
 import Financeiro from "../pages/Financeiro";
@@ -69,8 +70,11 @@ const QuarkApp = ({ showCampaigns }) => (
       <Route exact path="/v2/chat/clientes" component={V2ClientesPage} />
 
       {/* Gestão — same shell, Quark tokens */}
+      <Route exact path="/ajustes" render={() => (
+        <AjustesHub />
+      )} />
       <Route exact path="/settings" render={() => (
-        <Gestao title="Ajustes"><SettingsCustom /></Gestao>
+        <Gestao title="Configurações"><SettingsCustom /></Gestao>
       )} />
       <Route exact path="/connections" render={() => (
         <Gestao title="Conexões"><Connections /></Gestao>

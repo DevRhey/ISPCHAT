@@ -1,0 +1,121 @@
+/**
+ * Centralized card definitions for the AjustesHub page.
+ * Add new management destinations here; AjustesHub renders them as rectangle cards.
+ */
+
+export const AJUSTES_HUB_CARDS = [
+  {
+    id: "configuracoes",
+    title: "Configurações",
+    description: "Dados da empresa, horários, notificações e personalizações gerais.",
+    icon: "settings",
+    path: "/settings",
+    perform: "drawer-admin-items:view",
+  },
+  {
+    id: "conexoes",
+    title: "Conexões",
+    description: "Canais WhatsApp, status de conexão e QR codes.",
+    icon: "smartphone",
+    path: "/connections",
+    perform: "drawer-admin-items:view",
+  },
+  {
+    id: "departamentos",
+    title: "Departamentos",
+    description: "Filas de atendimento, chatbot e distribuição automática.",
+    icon: "layers",
+    path: "/queues",
+    perform: "drawer-admin-items:view",
+  },
+  {
+    id: "usuarios",
+    title: "Usuários",
+    description: "Cadastro de atendentes, perfis e permissões.",
+    icon: "user",
+    path: "/users",
+    perform: "drawer-admin-items:view",
+  },
+  {
+    id: "automacoes",
+    title: "Automações",
+    description: "Fluxos de atendimento, chatbot e integrações de IA.",
+    icon: "flows",
+    path: "/flows",
+    perform: "drawer-admin-items:view",
+  },
+  {
+    id: "mensagens-rapidas",
+    title: "Mensagens Rápidas",
+    description: "Respostas prontas reutilizáveis pelos atendentes.",
+    icon: "zap",
+    path: "/quick-messages",
+    perform: "drawer-service-items:view",
+  },
+  {
+    id: "tags",
+    title: "Tags",
+    description: "Etiquetas para classificar atendimentos e contatos.",
+    icon: "tag",
+    path: "/tags",
+    perform: "drawer-service-items:view",
+  },
+  {
+    id: "financeiro",
+    title: "Financeiro",
+    description: "Planos, cobranças e dados de assinatura.",
+    icon: "dollar",
+    path: "/financeiro",
+    perform: "drawer-admin-items:view",
+  },
+  {
+    id: "relatorios",
+    title: "Relatórios",
+    description: "Indicadores de atendimento, tempo médio e volume.",
+    icon: "bar-chart",
+    path: "/relatorios",
+    perform: "drawer-admin-items:view",
+  },
+  {
+    id: "agendamentos",
+    title: "Agendamentos",
+    description: "Mensagens e campanhas agendadas.",
+    icon: "calendar",
+    path: "/schedules",
+    perform: "drawer-service-items:view",
+  },
+  {
+    id: "integracoes",
+    title: "Integrações de Fila",
+    description: "Webhook e integrações externas por fila.",
+    icon: "git-branch",
+    path: "/queue-integration",
+    perform: "drawer-admin-items:view",
+  },
+  {
+    id: "api",
+    title: "API de Mensagens",
+    description: "Envio programático de mensagens via API REST.",
+    icon: "code",
+    path: "/messages-api",
+    perform: "drawer-admin-items:view",
+  },
+  {
+    id: "isp",
+    title: "Conectores ISP",
+    description: "Integrações com sistemas de provedor de internet.",
+    icon: "wifi",
+    path: "/isp-connectors",
+    perform: "drawer-admin-items:view",
+  },
+  {
+    id: "assinatura",
+    title: "Assinatura",
+    description: "Plano atual, vencimento e dados de pagamento.",
+    icon: "credit-card",
+    path: "/subscription",
+    perform: "drawer-admin-items:view",
+  },
+];
+
+export default AJUSTES_HUB_CARDS;

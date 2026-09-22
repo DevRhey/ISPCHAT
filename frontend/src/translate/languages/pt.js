@@ -841,7 +841,7 @@ const messages = {
         title: "Configurações de Campanhas",
       },
       queues: {
-        title: "Filas & Chatbot",
+        title: "Departamentos",
         table: {
 		  id:"ID",
           name: "Nome",
@@ -860,7 +860,7 @@ const messages = {
         },
       },
       queueSelect: {
-        inputLabel: "Filas",
+        inputLabel: "Departamentos",
       },
       users: {
         title: "Usuários",

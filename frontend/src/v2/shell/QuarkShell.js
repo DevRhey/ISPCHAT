@@ -37,9 +37,9 @@ const ATTENDANCE_NAV = [
 ];
 
 const GESTAO_NAV = [
-  { id: "settings", label: "Ajustes", icon: Settings, path: "/settings", perform: "drawer-admin-items:view" },
+  { id: "ajustes", label: "Ajustes", icon: Settings, path: "/ajustes", perform: "drawer-admin-items:view" },
   { id: "connections", label: "Conexões", icon: Smartphone, path: "/connections", perform: "drawer-admin-items:view" },
-  { id: "queues", label: "Filas", icon: Layers, path: "/queues", perform: "drawer-admin-items:view" },
+  { id: "queues", label: "Departamentos", icon: Layers, path: "/queues", perform: "drawer-admin-items:view" },
   { id: "users", label: "Usuários", icon: User, path: "/users", perform: "drawer-admin-items:view" },
   { id: "flows", label: "Automações", icon: GitBranch, path: "/flows", perform: "drawer-admin-items:view" },
   { id: "quick-messages", label: "Rápidas", icon: Zap, path: "/quick-messages", perform: "drawer-service-items:view" },
@@ -103,6 +103,9 @@ const QuarkShell = ({ children }) => {
   const isActive = (item) => {
     if (item.id === "chat") return isChatPath;
     if (item.id === "dashboard") return location.pathname.startsWith(V2_CHAT_DASHBOARD);
+    if (item.id === "ajustes") {
+      return location.pathname === "/ajustes" || location.pathname.startsWith("/settings");
+    }
     return location.pathname.startsWith(item.path);
   };
 
@@ -164,7 +167,7 @@ const QuarkShell = ({ children }) => {
             <button
               type="button"
               className="chat-shell-nav-item quark-shell-gestao-link"
-              onClick={() => history.push("/settings")}
+              onClick={() => history.push("/ajustes")}
               aria-label="Voltar à gestão"
             >
               <span className="chat-shell-nav-icon"><ArrowLeft size={18} /></span>
